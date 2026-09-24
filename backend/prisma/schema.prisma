@@ -1,0 +1,11 @@
+// Phase 0: chỉ có datasource và generator, chưa có model nghiệp vụ.
+// Bảng đầu tiên xuất hiện ở Phase 1 (users, refresh_tokens).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}

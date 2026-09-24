@@ -17,7 +17,7 @@ File này được đọc ở đầu mỗi phiên làm việc. Mọi quy tắc d
 
 ## 3. Stack đã khóa (không tự ý thay đổi, không thêm thư viện ngoài danh sách khi chưa được duyệt)
 
-- **Backend**: NestJS + TypeScript, Prisma + Prisma Migrate, MySQL 8 (Docker Compose), class-validator + class-transformer, @nestjs/jwt + @nestjs/passport + bcrypt, @nestjs/config, @nestjs/swagger, @nestjs/throttler, @nestjs/schedule, helmet, multer, dayjs (utc + timezone), Jest + Supertest.
+- **Backend**: NestJS + TypeScript, Prisma + Prisma Migrate, MySQL 8.0 cài sẵn trên máy (không dùng Docker), class-validator + class-transformer, @nestjs/jwt + @nestjs/passport + bcrypt, @nestjs/config, @nestjs/swagger, @nestjs/throttler, @nestjs/schedule, helmet, multer, dayjs (utc + timezone), Jest + Supertest.
 - **Frontend**: React + Vite + TypeScript, Tailwind + shadcn/ui, React Router, TanStack Query, Zustand (chỉ auth), React Hook Form + Zod, Axios, dayjs, sonner.
 - **Không dùng**: Redis, message queue, WebSocket, Maps API, cổng thanh toán, email, Redux, microservices.
 
@@ -51,7 +51,7 @@ Bổ sung:
 - Migration đã chạy thì không sửa; muốn đổi thì tạo migration mới.
 - Không commit `.env`, secret, token. Mọi cấu hình đọc từ biến môi trường; cập nhật `.env.example` khi thêm biến.
 - Không tự chạy lệnh phá hủy dữ liệu (`prisma migrate reset`, `DROP`, xóa volume Docker) khi chưa hỏi.
-- Một nhánh git mỗi phase (`phase-0-setup`, `phase-1-auth`…); commit theo Conventional Commits (`feat(booking): ...`, `fix(auth): ...`).
+- Một nhánh git mỗi phase (`phase-0-setup`, `phase-1-auth`…); mỗi phase chỉ commit **một lần**, khi phase đã xong và đã kiểm tra, với nội dung `Update <nội dung phase>` bằng tiếng Anh (vd `Update project setup`, `Update login feature`), không ghi tên phase vào message. Không dùng tiền tố `feat(...)`/`fix(...)`. Không thêm dòng `Co-Authored-By` hay bất kỳ dòng ghi công Claude nào vào commit. Không bao giờ stage `node_modules`, `.env`, thư mục build.
 
 ## 6. Quy ước backend (NestJS)
 
@@ -99,10 +99,34 @@ Bổ sung:
 
 ## 10. Lệnh thường dùng
 
-_Điền sau khi hoàn thành Phase 0._
+Backend (`backend/`, cần MySQL local chạy và `backend/.env`):
+
+| Việc | Lệnh |
+| --- | --- |
+| Chạy dev | `npm run start:dev` (API `http://localhost:3000/api/v1`, Swagger `/api/v1/docs`) |
+| Build | `npm run build` |
+| Lint | `npx eslint "{src,test}/**/*.ts"` |
+| Unit test | `npm test` |
+| e2e (dùng `backend/.env.test`, database `cleaning_booking_test`) | `npm run test:e2e` |
+| Sinh Prisma client | `npx prisma generate` |
+
+Frontend (`frontend/`, cần `frontend/.env`):
+
+| Việc | Lệnh |
+| --- | --- |
+| Chạy dev | `npm run dev` (`http://localhost:5173`) |
+| Build | `npm run build` |
+| Lint | `npm run lint` |
+
+Ghi chú:
+
+- Database local: `cleaning_booking`, `cleaning_booking_test`, user `cleaning_app` (tạo bằng `backend/prisma/setup-local-db.sql`). Các database khác trên máy không thuộc dự án, không được đụng.
+- Ghim phiên bản theo Nest 11: `@nestjs/swagger@11`, `@nestjs/config@4` (bản mới nhất của hai gói này dành cho Nest 12, dùng ESM và không chạy được với Jest). Không nâng lên nếu chưa hỏi.
+- Prisma ghim 6.x (không dùng 7).
 
 ## 11. Trạng thái hiện tại
 
 - Master plan v2: đã duyệt.
-- Phase hiện tại: **Phase 0 — Setup** (chưa bắt đầu).
+- Phase 0 — Setup: đã xong phần code và kiểm tra (nhánh `phase-0-setup`). Còn thiếu UML use case tổng quát (`docs/uml/usecase-overview.puml`).
+- Phase hiện tại: **Phase 1 — Auth** (chưa bắt đầu, chờ spec được duyệt).
 - Cập nhật mục này khi hoàn thành mỗi phase.
