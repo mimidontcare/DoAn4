@@ -41,9 +41,11 @@ export class AuthController {
     return this.auth.login(dto);
   }
 
+  // Frontend gọi refresh mỗi lần tải trang để khôi phục phiên, nên chỉ áp giới hạn
+  // chung 'default'; giới hạn chặt 'auth' dành cho register/login.
   @Public()
   @UseGuards(ThrottlerGuard)
-  @SkipThrottle({ default: true })
+  @SkipThrottle({ auth: true })
   @Post('refresh')
   @HttpCode(200)
   @ApiOperation({ summary: 'Đổi refresh token lấy cặp token mới' })

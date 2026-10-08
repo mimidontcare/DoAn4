@@ -21,8 +21,8 @@ import { UsersModule } from './users/users.module';
       envFilePath:
         process.env.NODE_ENV === 'test' ? ['.env.test', '.env'] : ['.env'],
     }),
-    // Không có ThrottlerGuard toàn cục: guard chỉ gắn ở register/login/refresh,
-    // các route đó bỏ qua 'default' và dùng giới hạn chặt hơn 'auth'.
+    // Không có ThrottlerGuard toàn cục: guard chỉ gắn ở register/login (giới hạn chặt 'auth')
+    // và refresh (giới hạn chung 'default').
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => [
