@@ -7,4 +7,12 @@ export default () => ({
     ttlMs: Number(process.env.THROTTLE_TTL_MS),
     limit: Number(process.env.THROTTLE_LIMIT),
   },
+  auth: {
+    jwtAccessSecret: process.env.JWT_ACCESS_SECRET,
+    jwtAccessTtl: process.env.JWT_ACCESS_TTL,
+    refreshTokenTtlDays: Number(process.env.REFRESH_TOKEN_TTL_DAYS),
+    bcryptRounds: Number(process.env.BCRYPT_ROUNDS),
+    throttleTtlMs: Number(process.env.AUTH_THROTTLE_TTL_MS),
+    throttleLimit: Number(process.env.AUTH_THROTTLE_LIMIT),
+  },
 });

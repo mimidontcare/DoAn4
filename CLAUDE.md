@@ -123,6 +123,8 @@ Ghi chú:
 - Database local: `cleaning_booking`, `cleaning_booking_test`, user `cleaning_app` (tạo bằng `backend/prisma/setup-local-db.sql`). Các database khác trên máy không thuộc dự án, không được đụng.
 - Ghim phiên bản theo Nest 11: `@nestjs/swagger@11`, `@nestjs/config@4` (bản mới nhất của hai gói này dành cho Nest 12, dùng ESM và không chạy được với Jest). Không nâng lên nếu chưa hỏi.
 - Prisma ghim 6.x (không dùng 7).
+- `npm audit` (backend) báo 3 mức high nhưng thực chất là một lỗi: `deepmerge-ts` < 8.0.0 (GHSA-ggr8-5vv4-36mx, đệ quy vô hạn gây crash) nằm trong chuỗi `prisma` → `@prisma/config` → `deepmerge-ts`. Chỉ ảnh hưởng công cụ CLI ở devDependencies, không chạy trong server. Đã chọn chấp nhận (2026-09-24). Không chạy `npm audit fix --force` (sẽ hạ prisma xuống 6.12.0). Kiểm tra lại khi Prisma 6.x ra bản nâng `deepmerge-ts`.
+- `backend/package.json` có `overrides` ép `js-yaml` (trong `@nestjs/swagger` lên 5.4.x, trong `@istanbuljs/load-nyc-config` lên 4.x) để vá GHSA-r3ph-w7gj-g6xm và loại `sprintf-js` (GHSA-hp3w-g68c-fv3c). Không xóa khi chưa kiểm tra lại `npm audit` (2026-10-08).
 
 ## 11. Trạng thái hiện tại
 

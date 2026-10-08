@@ -18,12 +18,15 @@ Nghiệp vụ, database, API và roadmap: xem `docs/MASTER_PLAN.md`. Quy tắc l
 
 ```bash
 cd backend
-cp .env.example .env            # điền mật khẩu vào DATABASE_URL
+cp .env.example .env            # điền mật khẩu DATABASE_URL, JWT_ACCESS_SECRET, SEED_*_PASSWORD
 cp .env.test.example .env.test  # cùng mật khẩu, dùng cho e2e
 npm install
-npx prisma generate
+npx prisma migrate dev          # tạo bảng trong database cleaning_booking
+npx prisma db seed              # tạo tài khoản admin và nhân viên mẫu (thông tin trong SEED_* của .env)
 npm run start:dev
 ```
+
+Tài khoản seed bị bắt đổi mật khẩu ở lần đăng nhập đầu. Chạy seed lại nhiều lần an toàn: tài khoản đã có thì bỏ qua.
 
 - Health check: http://localhost:3000/api/v1/health
 - Swagger: http://localhost:3000/api/v1/docs

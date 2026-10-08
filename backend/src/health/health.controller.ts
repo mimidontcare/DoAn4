@@ -1,8 +1,10 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { Public } from '../common/decorators/public.decorator';
 import { HealthResult, HealthService } from './health.service';
 
+@Public()
 @ApiTags('health')
 @Controller('health')
 export class HealthController {

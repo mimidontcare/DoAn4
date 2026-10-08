@@ -1,6 +1,3 @@
-// Phase 0: chỉ có datasource và generator, chưa có model nghiệp vụ.
-// Bảng đầu tiên xuất hiện ở Phase 1 (users, refresh_tokens).
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,4 +5,48 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+}
+
+model User {
+  id                 Int        @id @default(autoincrement())
+  email              String     @unique @db.VarChar(191)
+  phone              String     @unique @db.VarChar(20)
+  passwordHash       String     @map("password_hash") @db.VarChar(255)
+  fullName           String     @map("full_name") @db.VarChar(100)
+  role               UserRole
+  status             UserStatus @default(ACTIVE)
+  mustChangePassword Boolean    @default(false) @map("must_change_password")
+  lateCancelCount    Int        @default(0) @map("late_cancel_count")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  // SHA-256 hex của token; token gốc không lưu.
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
