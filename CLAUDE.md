@@ -130,5 +130,7 @@ Ghi chú:
 
 - Master plan v2: đã duyệt.
 - Phase 0 — Setup: đã xong phần code và kiểm tra (nhánh `phase-0-setup`). Còn thiếu UML use case tổng quát (`docs/uml/usecase-overview.puml`).
-- Phase hiện tại: **Phase 1 — Auth** (chưa bắt đầu, chờ spec được duyệt).
+- Phase 1 — Auth: đã xong phần code và kiểm tra (nhánh `phase-1-auth`), gồm backend và frontend. UML (sequence đăng nhập + refresh) để làm khi viết báo cáo.
+- Phase hiện tại: **Phase 2 — Catalog + vùng phục vụ** (chưa bắt đầu, chờ spec được duyệt).
+- Giao diện frontend theo `docs/DESIGN_SYSTEM.md`.
 - Cập nhật mục này khi hoàn thành mỗi phase.

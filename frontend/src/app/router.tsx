@@ -1,11 +1,15 @@
 import { createBrowserRouter } from 'react-router'
+import { ChangePasswordPage } from '@/features/auth/pages/ChangePasswordPage'
+import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { HealthStatus } from '@/features/health/HealthStatus'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { CustomerLayout } from '@/layouts/CustomerLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { StaffLayout } from '@/layouts/StaffLayout'
+import { GuestOnly, RequireAuth } from './guards'
 
-// Route guard theo role được thêm ở Phase 1; hiện các khu vực còn là placeholder.
+// Nội dung từng khu vực còn là placeholder, được thay ở các phase sau.
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -13,18 +17,44 @@ export const router = createBrowserRouter([
     children: [{ index: true, element: <HealthStatus /> }],
   },
   {
-    path: '/account',
-    element: <CustomerLayout />,
-    children: [{ index: true, element: <p>Khu vực khách hàng</p> }],
+    element: <GuestOnly />,
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
+    ],
   },
   {
-    path: '/staff',
-    element: <StaffLayout />,
-    children: [{ index: true, element: <p>Khu vực nhân viên</p> }],
+    element: <RequireAuth allowPendingPasswordChange />,
+    children: [{ path: '/change-password', element: <ChangePasswordPage /> }],
   },
   {
-    path: '/admin',
-    element: <AdminLayout />,
-    children: [{ index: true, element: <p>Khu vực quản trị</p> }],
+    element: <RequireAuth roles={['CUSTOMER']} />,
+    children: [
+      {
+        path: '/account',
+        element: <CustomerLayout />,
+        children: [{ index: true, element: <p>Khu vực khách hàng</p> }],
+      },
+    ],
+  },
+  {
+    element: <RequireAuth roles={['STAFF']} />,
+    children: [
+      {
+        path: '/staff',
+        element: <StaffLayout />,
+        children: [{ index: true, element: <p>Khu vực nhân viên</p> }],
+      },
+    ],
+  },
+  {
+    element: <RequireAuth roles={['ADMIN']} />,
+    children: [
+      {
+        path: '/admin',
+        element: <AdminLayout />,
+        children: [{ index: true, element: <p>Khu vực quản trị</p> }],
+      },
+    ],
   },
 ])
