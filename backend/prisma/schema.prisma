@@ -31,7 +31,11 @@ model User {
   createdAt          DateTime   @default(now()) @map("created_at")
   updatedAt          DateTime   @updatedAt @map("updated_at")
 
-  refreshTokens RefreshToken[]
+  refreshTokens         RefreshToken[]
+  staffZones            StaffZone[]
+  unavailabilities      StaffUnavailability[] @relation("StaffUnavailabilities")
+  createdUnavailability StaffUnavailability[] @relation("UnavailabilityCreatedBy")
+  addresses             Address[]
 
   @@map("users")
 }
@@ -82,8 +86,9 @@ model ServiceZone {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  province Province @relation(fields: [provinceId], references: [id])
-  wards    Ward[]
+  province   Province    @relation(fields: [provinceId], references: [id])
+  wards      Ward[]
+  staffZones StaffZone[]
 
   @@unique([provinceId, name])
   @@map("service_zones")
@@ -101,8 +106,9 @@ model Ward {
   oldNameHint String?  @map("old_name_hint") @db.VarChar(255)
   isActive    Boolean  @default(false) @map("is_active")
 
-  province Province     @relation(fields: [provinceId], references: [id])
-  zone     ServiceZone? @relation(fields: [zoneId], references: [id])
+  province  Province     @relation(fields: [provinceId], references: [id])
+  zone      ServiceZone? @relation(fields: [zoneId], references: [id])
+  addresses Address[]
 
   @@index([provinceId])
   @@index([zoneId])
@@ -154,4 +160,64 @@ model ServiceItem {
 
   @@index([serviceId])
   @@map("service_items")
+}
+
+// ---------- Nhân viên (A03, A04) ----------
+
+/**
+ * Nhân viên phục vụ những khu vực nào (nhiều-nhiều).
+ */
+model StaffZone {
+  staffId Int @map("staff_id")
+  zoneId  Int @map("zone_id")
+
+  staff User        @relation(fields: [staffId], references: [id])
+  zone  ServiceZone @relation(fields: [zoneId], references: [id])
+
+  @@id([staffId, zoneId])
+  @@index([zoneId])
+  @@map("staff_zones")
+}
+
+/**
+ * Lịch nghỉ do admin nhập; thời gian lưu UTC (T07).
+ */
+model StaffUnavailability {
+  id        Int      @id @default(autoincrement())
+  staffId   Int      @map("staff_id")
+  startAt   DateTime @map("start_at")
+  endAt     DateTime @map("end_at")
+  reason    String?  @db.VarChar(255)
+  createdBy Int      @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  staff   User @relation("StaffUnavailabilities", fields: [staffId], references: [id])
+  creator User @relation("UnavailabilityCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([staffId, startAt])
+  @@map("staff_unavailabilities")
+}
+
+// ---------- Địa chỉ khách (C04) ----------
+
+model Address {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  wardId       Int      @map("ward_id")
+  detail       String   @db.VarChar(255)
+  label        String?  @db.VarChar(50)
+  contactName  String   @map("contact_name") @db.VarChar(100)
+  contactPhone String   @map("contact_phone") @db.VarChar(20)
+  isDefault    Boolean  @default(false) @map("is_default")
+  // Xóa mềm: booking sau này snapshot địa chỉ nên không phụ thuộc bản ghi này.
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  ward Ward @relation(fields: [wardId], references: [id])
+
+  @@index([userId, isDeleted])
+  @@index([wardId])
+  @@map("addresses")
 }

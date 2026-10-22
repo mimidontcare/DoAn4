@@ -28,6 +28,9 @@ export async function createTestApp() {
 
 /** Xóa dữ liệu theo thứ tự khóa ngoại. */
 export async function resetDatabase(prisma: PrismaService) {
+  await prisma.address.deleteMany();
+  await prisma.staffUnavailability.deleteMany();
+  await prisma.staffZone.deleteMany();
   await prisma.serviceItem.deleteMany();
   await prisma.service.deleteMany();
   await prisma.ward.deleteMany();
@@ -37,17 +40,27 @@ export async function resetDatabase(prisma: PrismaService) {
   await prisma.user.deleteMany();
 }
 
-/** Tạo user (không bắt đổi mật khẩu) rồi đăng nhập, trả access token. */
+const ROLE_PHONE: Record<UserRole, string> = {
+  ADMIN: '0900000001',
+  STAFF: '0900000002',
+  CUSTOMER: '0900000003',
+};
+
+/**
+ * Tạo user (không bắt đổi mật khẩu) rồi đăng nhập, trả access token.
+ * Truyền email/phone khi cần nhiều user cùng role trong một test.
+ */
 export async function loginAs(
   prisma: PrismaService,
   server: App,
   role: UserRole,
+  account: { email?: string; phone?: string } = {},
 ): Promise<string> {
-  const email = `${role.toLowerCase()}@example.com`;
+  const email = account.email ?? `${role.toLowerCase()}@example.com`;
   await prisma.user.create({
     data: {
       email,
-      phone: role === UserRole.ADMIN ? '0900000001' : '0900000003',
+      phone: account.phone ?? ROLE_PHONE[role],
       fullName: role,
       passwordHash: await bcrypt.hash(PASSWORD, 4),
       role,

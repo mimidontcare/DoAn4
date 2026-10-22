@@ -11,6 +11,7 @@ import {
   PROVINCE_SELECT,
   ProvinceView,
   PUBLIC_ZONE_SELECT,
+  SERVICEABILITY_SELECT,
   ServiceAreas,
   WARD_SELECT,
   WardView,
@@ -51,6 +52,23 @@ export class AreasService {
       select: PUBLIC_ZONE_SELECT,
     });
     return { province, zones };
+  }
+
+  /**
+   * Z01: phường đang bật, thuộc khu vực đang bật của tỉnh đang hoạt động.
+   * Dùng khi lưu địa chỉ và (Phase 4) khi đặt lịch. Không đạt → 422.
+   */
+  async assertWardServiceable(wardId: number) {
+    const ward = await this.prisma.ward.findUnique({
+      where: { id: wardId },
+      select: SERVICEABILITY_SELECT,
+    });
+    if (!ward || !isWardServiceable(ward)) {
+      throw new UnprocessableEntityException(
+        'Phường/xã này hiện chưa nằm trong vùng phục vụ',
+      );
+    }
+    return ward;
   }
 
   // ---------- Tỉnh (Z02) ----------
@@ -200,6 +218,15 @@ export class AreasService {
     }
     return province;
   }
+}
+
+/** Z01 trên dữ liệu đã nạp bằng SERVICEABILITY_SELECT. */
+export function isWardServiceable(ward: {
+  isActive: boolean;
+  zone: { isActive: boolean } | null;
+  province: { isActive: boolean };
+}): boolean {
+  return ward.isActive && !!ward.zone?.isActive && ward.province.isActive;
 }
 
 /** Z01: trạng thái bật/tắt của phường sau khi sửa. */

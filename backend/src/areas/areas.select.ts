@@ -60,6 +60,16 @@ export const PUBLIC_ZONE_SELECT = {
   },
 } satisfies Prisma.ServiceZoneSelect;
 
+/** Đủ field để kiểm tra Z01 và hiển thị tên phường, khu vực, tỉnh. */
+export const SERVICEABILITY_SELECT = {
+  id: true,
+  name: true,
+  type: true,
+  isActive: true,
+  zone: { select: { id: true, name: true, isActive: true } },
+  province: { select: { id: true, name: true, isActive: true } },
+} satisfies Prisma.WardSelect;
+
 export interface ServiceAreas {
   province: { id: number; code: string; name: string } | null;
   zones: { id: number; name: string; wards: PublicWard[] }[];

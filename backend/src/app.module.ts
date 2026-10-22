@@ -11,6 +11,7 @@ import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StaffModule } from './staff/staff.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
 
@@ -48,6 +49,7 @@ import { UsersModule } from './users/users.module';
     CatalogModule,
     AreasModule,
     StorageModule,
+    StaffModule,
   ],
   providers: [
     // Thứ tự đăng ký là thứ tự chạy: xác thực trước, kiểm tra role sau.

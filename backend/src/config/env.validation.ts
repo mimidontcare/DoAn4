@@ -66,6 +66,11 @@ class EnvironmentVariables {
   @Min(1)
   AUTH_THROTTLE_LIMIT: number;
 
+  // C04: số địa chỉ tối đa mỗi khách (chưa tính địa chỉ đã xóa).
+  @IsInt()
+  @Min(1)
+  MAX_ADDRESSES_PER_CUSTOMER: number;
+
   // Thư mục lưu ảnh upload, tương đối với thư mục chạy backend.
   @IsString()
   @IsNotEmpty()
@@ -86,6 +91,7 @@ const DEFAULTS: Record<string, string> = {
   BCRYPT_ROUNDS: '10',
   AUTH_THROTTLE_TTL_MS: '60000',
   AUTH_THROTTLE_LIMIT: '5',
+  MAX_ADDRESSES_PER_CUSTOMER: '5',
   UPLOAD_DIR: 'uploads',
   UPLOAD_MAX_BYTES: '2097152',
 };

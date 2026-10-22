@@ -12,6 +12,7 @@ import { Roles } from '../src/common/decorators/roles.decorator';
 import type { ApiResponse } from '../src/common/interceptors/response.interceptor';
 import { PrismaService } from '../src/prisma/prisma.service';
 import type { PublicUser } from '../src/users/user.select';
+import { resetDatabase } from './e2e-helpers';
 import { assertTestDatabase } from './setup-e2e';
 
 /** Route chỉ có trong test để kiểm tra RolesGuard và chặn must_change_password. */
@@ -51,8 +52,8 @@ describe('Auth (e2e)', () => {
   });
 
   beforeEach(async () => {
-    await prisma.refreshToken.deleteMany();
-    await prisma.user.deleteMany();
+    // Dọn mọi bảng theo thứ tự khóa ngoại: các file e2e khác có thể để lại địa chỉ, khu vực nhân viên.
+    await resetDatabase(prisma);
   });
 
   afterAll(async () => {
