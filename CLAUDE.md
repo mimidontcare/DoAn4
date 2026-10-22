@@ -51,7 +51,8 @@ Bổ sung:
 - Migration đã chạy thì không sửa; muốn đổi thì tạo migration mới.
 - Không commit `.env`, secret, token. Mọi cấu hình đọc từ biến môi trường; cập nhật `.env.example` khi thêm biến.
 - Không tự chạy lệnh phá hủy dữ liệu (`prisma migrate reset`, `DROP`, xóa volume Docker) khi chưa hỏi.
-- Một nhánh git mỗi phase (`phase-0-setup`, `phase-1-auth`…); mỗi phase chỉ commit **một lần**, khi phase đã xong và đã kiểm tra, với nội dung `Update <nội dung phase>` bằng tiếng Anh (vd `Update project setup`, `Update login feature`), không ghi tên phase vào message. Không dùng tiền tố `feat(...)`/`fix(...)`. Không thêm dòng `Co-Authored-By` hay bất kỳ dòng ghi công Claude nào vào commit. Không bao giờ stage `node_modules`, `.env`, thư mục build.
+- Chỉ dùng 2 nhánh: `master` (bản ổn định, lỗi thì quay về) và `develop` (làm việc hằng ngày). Commit và push trên `develop`; khi một phase xong và đã kiểm tra thì gộp `develop` vào `master` (fast-forward). Không tạo thêm nhánh.
+- Commit theo từng phần khi phần đó đã kiểm tra: `Update Backend` cho backend, `Update frontend` cho frontend; không ghi tên phase vào message. Không dùng tiền tố `feat(...)`/`fix(...)`. Không thêm dòng `Co-Authored-By` hay bất kỳ dòng ghi công Claude nào vào commit. Không bao giờ stage `node_modules`, `.env`, thư mục build.
 
 ## 6. Quy ước backend (NestJS)
 
@@ -129,8 +130,11 @@ Ghi chú:
 ## 11. Trạng thái hiện tại
 
 - Master plan v2: đã duyệt.
-- Phase 0 — Setup: đã xong phần code và kiểm tra (nhánh `phase-0-setup`). Còn thiếu UML use case tổng quát (`docs/uml/usecase-overview.puml`).
-- Phase 1 — Auth: đã xong phần code và kiểm tra (nhánh `phase-1-auth`), gồm backend và frontend. UML (sequence đăng nhập + refresh) để làm khi viết báo cáo.
-- Phase hiện tại: **Phase 2 — Catalog + vùng phục vụ** (chưa bắt đầu, chờ spec được duyệt).
+- Phase 0 — Setup: đã xong phần code và kiểm tra. Còn thiếu UML use case tổng quát (`docs/uml/usecase-overview.puml`).
+- Phase 1 — Auth: đã xong phần code và kiểm tra, gồm backend và frontend; đã gộp vào `master`. UML (sequence đăng nhập + refresh) để làm khi viết báo cáo.
+- Phase 2 — Catalog + vùng phục vụ: đã xong phần code và kiểm tra, gồm backend (module `catalog`, `areas`, `storage`), frontend (trang dịch vụ, admin dịch vụ và vùng) và UML (`docs/uml/erd.puml`, `activity-booking.puml`, `state-booking.puml`); đã gộp vào `master`. Seed phường/xã (`backend/prisma/data/areas/ha-noi.json`) là dữ liệu mẫu, mã `DMxxx` tạm thời: phải thay bằng danh sách và mã chính thức trước Phase 8.
+- Phase 3 — Nhân viên + địa chỉ: đã xong phần code và kiểm tra, gồm backend (module `staff`, địa chỉ và khóa tài khoản trong `users`), frontend (admin nhân viên, `features/account` cho khách) và ERD bản 1; đã gộp vào `master`. Còn để Phase 5: U03 (không khóa nhân viên còn booking tương lai) và A04 (lịch nghỉ không trùng booking đã giao), đã đánh dấu `TODO Phase 5` trong code.
+- Frontend cần `VITE_APP_TIMEZONE` trong `frontend/.env` (xem `.env.example`).
+- Phase hiện tại: **Phase 4 — Booking lõi** (chưa bắt đầu, chờ spec được duyệt).
 - Giao diện frontend theo `docs/DESIGN_SYSTEM.md`.
 - Cập nhật mục này khi hoàn thành mỗi phase.
