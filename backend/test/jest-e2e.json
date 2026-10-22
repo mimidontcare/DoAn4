@@ -13,5 +13,6 @@
   "globalSetup": "./setup-e2e.ts",
   "setupFiles": [
     "./load-test-env.ts"
-  ]
+  ],
+  "maxWorkers": 1
 }

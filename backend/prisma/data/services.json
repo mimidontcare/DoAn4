@@ -1,0 +1,51 @@
+{
+  "_note": "Dịch vụ demo theo master plan mục 3.4. Giá là số liệu minh họa (VND, số nguyên).",
+  "services": [
+    {
+      "name": "Tổng vệ sinh nhà đang ở",
+      "slug": "tong-ve-sinh-nha-dang-o",
+      "description": "Làm sạch toàn bộ sàn, bếp, nhà vệ sinh, lau bụi bề mặt cho nhà đang có người ở. Giá tính theo diện tích sàn.",
+      "minCharge": 500000,
+      "sortOrder": 1,
+      "items": [
+        { "name": "Diện tích sàn", "unit": "M2", "unitPrice": 15000, "minutesPerUnit": 2, "minQty": 20, "maxQty": 500, "isRequired": true, "sortOrder": 1 },
+        { "name": "Mang dụng cụ và hóa chất", "unit": "UNIT", "unitPrice": 100000, "minutesPerUnit": 0, "minQty": 0, "maxQty": 1, "isRequired": false, "sortOrder": 2 }
+      ]
+    },
+    {
+      "name": "Vệ sinh sau xây dựng",
+      "slug": "ve-sinh-sau-xay-dung",
+      "description": "Dọn bụi xi măng, sơn, vữa sau khi sửa chữa hoặc xây mới; đơn giá cao hơn tổng vệ sinh thông thường.",
+      "minCharge": 1000000,
+      "sortOrder": 2,
+      "items": [
+        { "name": "Diện tích sàn", "unit": "M2", "unitPrice": 25000, "minutesPerUnit": 3, "minQty": 20, "maxQty": 500, "isRequired": true, "sortOrder": 1 },
+        { "name": "Mang dụng cụ và hóa chất", "unit": "UNIT", "unitPrice": 150000, "minutesPerUnit": 0, "minQty": 0, "maxQty": 1, "isRequired": false, "sortOrder": 2 }
+      ]
+    },
+    {
+      "name": "Vệ sinh kính",
+      "slug": "ve-sinh-kinh",
+      "description": "Lau kính cửa sổ, vách kính, cửa kính trong và ngoài tầm với an toàn. Giá tính theo diện tích kính.",
+      "minCharge": 300000,
+      "sortOrder": 3,
+      "items": [
+        { "name": "Diện tích kính", "unit": "M2", "unitPrice": 12000, "minutesPerUnit": 2, "minQty": 5, "maxQty": 300, "isRequired": true, "sortOrder": 1 }
+      ]
+    },
+    {
+      "name": "Vệ sinh sofa, nệm, rèm",
+      "slug": "ve-sinh-sofa-nem-rem",
+      "description": "Giặt hút sofa, nệm, rèm tại nhà bằng máy chuyên dụng. Giá tính theo từng món.",
+      "minCharge": 300000,
+      "sortOrder": 4,
+      "items": [
+        { "name": "Sofa 2 chỗ", "unit": "UNIT", "unitPrice": 250000, "minutesPerUnit": 60, "minQty": 0, "maxQty": 5, "isRequired": false, "sortOrder": 1 },
+        { "name": "Sofa 3 chỗ", "unit": "UNIT", "unitPrice": 350000, "minutesPerUnit": 90, "minQty": 0, "maxQty": 5, "isRequired": false, "sortOrder": 2 },
+        { "name": "Nệm 1m6", "unit": "UNIT", "unitPrice": 300000, "minutesPerUnit": 60, "minQty": 0, "maxQty": 5, "isRequired": false, "sortOrder": 3 },
+        { "name": "Nệm 1m8", "unit": "UNIT", "unitPrice": 350000, "minutesPerUnit": 70, "minQty": 0, "maxQty": 5, "isRequired": false, "sortOrder": 4 },
+        { "name": "Rèm (1 bộ)", "unit": "UNIT", "unitPrice": 150000, "minutesPerUnit": 30, "minQty": 0, "maxQty": 10, "isRequired": false, "sortOrder": 5 }
+      ]
+    }
+  ]
+}

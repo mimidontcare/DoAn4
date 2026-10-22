@@ -65,6 +65,15 @@ class EnvironmentVariables {
   @IsInt()
   @Min(1)
   AUTH_THROTTLE_LIMIT: number;
+
+  // Thư mục lưu ảnh upload, tương đối với thư mục chạy backend.
+  @IsString()
+  @IsNotEmpty()
+  UPLOAD_DIR: string;
+
+  @IsInt()
+  @Min(1)
+  UPLOAD_MAX_BYTES: number;
 }
 
 const DEFAULTS: Record<string, string> = {
@@ -77,6 +86,8 @@ const DEFAULTS: Record<string, string> = {
   BCRYPT_ROUNDS: '10',
   AUTH_THROTTLE_TTL_MS: '60000',
   AUTH_THROTTLE_LIMIT: '5',
+  UPLOAD_DIR: 'uploads',
+  UPLOAD_MAX_BYTES: '2097152',
 };
 
 /**

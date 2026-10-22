@@ -15,4 +15,8 @@ export default () => ({
     throttleTtlMs: Number(process.env.AUTH_THROTTLE_TTL_MS),
     throttleLimit: Number(process.env.AUTH_THROTTLE_LIMIT),
   },
+  upload: {
+    dir: process.env.UPLOAD_DIR,
+    maxBytes: Number(process.env.UPLOAD_MAX_BYTES),
+  },
 });

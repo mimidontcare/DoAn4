@@ -1,0 +1,69 @@
+{
+  "_note": "DỮ LIỆU MẪU cho demo (Phase 2): một phần phường/xã của Hà Nội sau sắp xếp 1/7/2025. Mã phường/xã (code) là mã tạm DMxxx, KHÔNG phải mã chính thức; phải thay bằng danh sách và mã chính thức trước Phase 8. Khu vực do công ty tự chia.",
+  "province": { "code": "01", "name": "Thành phố Hà Nội" },
+  "zones": [
+    {
+      "name": "Trung tâm",
+      "wards": [
+        { "code": "DM001", "name": "Ba Đình", "type": "PHUONG" },
+        { "code": "DM002", "name": "Ngọc Hà", "type": "PHUONG" },
+        { "code": "DM003", "name": "Giảng Võ", "type": "PHUONG" },
+        { "code": "DM004", "name": "Hoàn Kiếm", "type": "PHUONG" },
+        { "code": "DM005", "name": "Cửa Nam", "type": "PHUONG" },
+        { "code": "DM006", "name": "Hai Bà Trưng", "type": "PHUONG" },
+        { "code": "DM007", "name": "Bạch Mai", "type": "PHUONG" },
+        { "code": "DM008", "name": "Vĩnh Tuy", "type": "PHUONG" },
+        { "code": "DM009", "name": "Đống Đa", "type": "PHUONG" },
+        { "code": "DM010", "name": "Kim Liên", "type": "PHUONG" },
+        { "code": "DM011", "name": "Văn Miếu - Quốc Tử Giám", "type": "PHUONG" },
+        { "code": "DM012", "name": "Láng", "type": "PHUONG" },
+        { "code": "DM013", "name": "Ô Chợ Dừa", "type": "PHUONG" }
+      ]
+    },
+    {
+      "name": "Phía Tây",
+      "wards": [
+        { "code": "DM021", "name": "Cầu Giấy", "type": "PHUONG" },
+        { "code": "DM022", "name": "Nghĩa Đô", "type": "PHUONG" },
+        { "code": "DM023", "name": "Yên Hòa", "type": "PHUONG" },
+        { "code": "DM024", "name": "Thanh Xuân", "type": "PHUONG" },
+        { "code": "DM025", "name": "Khương Đình", "type": "PHUONG" },
+        { "code": "DM026", "name": "Phương Liệt", "type": "PHUONG" },
+        { "code": "DM027", "name": "Từ Liêm", "type": "PHUONG" },
+        { "code": "DM028", "name": "Xuân Phương", "type": "PHUONG" },
+        { "code": "DM029", "name": "Tây Mỗ", "type": "PHUONG" },
+        { "code": "DM030", "name": "Đại Mỗ", "type": "PHUONG" },
+        { "code": "DM031", "name": "Hà Đông", "type": "PHUONG" },
+        { "code": "DM032", "name": "Dương Nội", "type": "PHUONG" }
+      ]
+    },
+    {
+      "name": "Phía Nam",
+      "wards": [
+        { "code": "DM041", "name": "Hoàng Mai", "type": "PHUONG" },
+        { "code": "DM042", "name": "Định Công", "type": "PHUONG" },
+        { "code": "DM043", "name": "Tương Mai", "type": "PHUONG" },
+        { "code": "DM044", "name": "Lĩnh Nam", "type": "PHUONG" },
+        { "code": "DM045", "name": "Hoàng Liệt", "type": "PHUONG" },
+        { "code": "DM046", "name": "Yên Sở", "type": "PHUONG" }
+      ]
+    },
+    {
+      "name": "Phía Đông",
+      "wards": [
+        { "code": "DM061", "name": "Long Biên", "type": "PHUONG" },
+        { "code": "DM062", "name": "Bồ Đề", "type": "PHUONG" },
+        { "code": "DM063", "name": "Việt Hưng", "type": "PHUONG" },
+        { "code": "DM064", "name": "Phúc Lợi", "type": "PHUONG" }
+      ]
+    }
+  ],
+  "unassignedWards": [
+    { "code": "DM081", "name": "Tây Hồ", "type": "PHUONG" },
+    { "code": "DM082", "name": "Hồng Hà", "type": "PHUONG" },
+    { "code": "DM091", "name": "Bát Tràng", "type": "XA" },
+    { "code": "DM092", "name": "Gia Lâm", "type": "XA" },
+    { "code": "DM093", "name": "Đông Anh", "type": "XA" },
+    { "code": "DM094", "name": "Sóc Sơn", "type": "XA" }
+  ]
+}

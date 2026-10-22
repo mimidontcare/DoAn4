@@ -2,13 +2,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AreasModule } from './areas/areas.module';
 import { AuthModule } from './auth/auth.module';
+import { CatalogModule } from './catalog/catalog.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -42,6 +45,9 @@ import { UsersModule } from './users/users.module';
     HealthModule,
     AuthModule,
     UsersModule,
+    CatalogModule,
+    AreasModule,
+    StorageModule,
   ],
   providers: [
     // Thứ tự đăng ký là thứ tự chạy: xác thực trước, kiểm tra role sau.
