@@ -3,10 +3,14 @@ import type {
   AdminService,
   AdminServiceItem,
   AdminServiceSummary,
+  CreateStaffInput,
   Paginated,
   Province,
   ServiceInput,
   ServiceItemInput,
+  Staff,
+  StaffFilters,
+  Unavailability,
   Ward,
   WardFilters,
   Zone,
@@ -107,7 +111,8 @@ export async function activateProvince(id: number): Promise<Province> {
   return unwrap(res.data)
 }
 
-export async function fetchZones(provinceId: number): Promise<Zone[]> {
+/** provinceId bỏ trống: khu vực của mọi tỉnh. */
+export async function fetchZones(provinceId?: number): Promise<Zone[]> {
   const res = await apiClient.get<ApiResponse<Zone[]>>('/admin/zones', {
     params: { provinceId },
   })
@@ -151,4 +156,65 @@ export async function updateWard(
 ): Promise<Ward> {
   const res = await apiClient.patch<ApiResponse<Ward>>(`/admin/wards/${id}`, input)
   return unwrap(res.data)
+}
+
+// ---------- Nhân viên ----------
+
+export async function fetchStaffList(filters: StaffFilters): Promise<Paginated<Staff>> {
+  const res = await apiClient.get<ApiResponse<Paginated<Staff>>>('/admin/staff', {
+    params: { ...filters, q: filters.q || undefined },
+  })
+  return unwrap(res.data)
+}
+
+export async function fetchStaff(id: number): Promise<Staff> {
+  const res = await apiClient.get<ApiResponse<Staff>>(`/admin/staff/${id}`)
+  return unwrap(res.data)
+}
+
+export async function createStaff(input: CreateStaffInput): Promise<Staff> {
+  const res = await apiClient.post<ApiResponse<Staff>>('/admin/staff', input)
+  return unwrap(res.data)
+}
+
+export async function updateStaff(
+  id: number,
+  input: { fullName?: string; phone?: string },
+): Promise<Staff> {
+  const res = await apiClient.put<ApiResponse<Staff>>(`/admin/staff/${id}`, input)
+  return unwrap(res.data)
+}
+
+export async function setStaffZones(id: number, zoneIds: number[]): Promise<Staff> {
+  const res = await apiClient.put<ApiResponse<Staff>>(`/admin/staff/${id}/zones`, {
+    zoneIds,
+  })
+  return unwrap(res.data)
+}
+
+/** Khóa/mở khóa dùng chung cho nhân viên và khách. */
+export async function setUserLocked(id: number, locked: boolean): Promise<void> {
+  await apiClient.patch(`/admin/users/${id}/${locked ? 'lock' : 'unlock'}`)
+}
+
+export async function fetchUnavailabilities(staffId: number): Promise<Unavailability[]> {
+  const res = await apiClient.get<ApiResponse<Unavailability[]>>(
+    `/admin/staff/${staffId}/unavailabilities`,
+  )
+  return unwrap(res.data)
+}
+
+export async function createUnavailability(
+  staffId: number,
+  input: { startAt: string; endAt: string; reason?: string },
+): Promise<Unavailability> {
+  const res = await apiClient.post<ApiResponse<Unavailability>>(
+    `/admin/staff/${staffId}/unavailabilities`,
+    input,
+  )
+  return unwrap(res.data)
+}
+
+export async function deleteUnavailability(staffId: number, id: number): Promise<void> {
+  await apiClient.delete(`/admin/staff/${staffId}/unavailabilities/${id}`)
 }

@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/client'
 import { catalogKeys } from '@/features/catalog/hooks'
 import * as api from './api'
-import type { ServiceInput, ServiceItemInput, WardFilters } from './types'
+import type { ServiceInput, ServiceItemInput, StaffFilters, WardFilters } from './types'
 
 export const adminKeys = {
   services: ['admin', 'services'] as const,
@@ -160,6 +160,96 @@ export function useUpdateWard() {
       isActive?: boolean
     }) => api.updateWard(id, input),
     onSuccess: invalidate,
+    onError: toastError,
+  })
+}
+
+// ---------- Nhân viên ----------
+
+export const staffKeys = {
+  root: ['admin', 'staff'] as const,
+  list: (filters: StaffFilters) => ['admin', 'staff', 'list', filters] as const,
+  detail: (id: number) => ['admin', 'staff', id] as const,
+  unavailabilities: (id: number) => ['admin', 'staff', id, 'unavailabilities'] as const,
+}
+
+/** Khu vực của mọi tỉnh, dùng khi gán khu vực cho nhân viên. */
+export function useAllZones() {
+  return useQuery({ queryKey: ['admin', 'zones', 'all'], queryFn: () => api.fetchZones() })
+}
+
+export function useStaffList(filters: StaffFilters) {
+  return useQuery({
+    queryKey: staffKeys.list(filters),
+    queryFn: () => api.fetchStaffList(filters),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useStaff(id: number) {
+  return useQuery({ queryKey: staffKeys.detail(id), queryFn: () => api.fetchStaff(id) })
+}
+
+function useInvalidateStaff() {
+  const queryClient = useQueryClient()
+  return () => queryClient.invalidateQueries({ queryKey: staffKeys.root })
+}
+
+export function useCreateStaff() {
+  const invalidate = useInvalidateStaff()
+  return useMutation({ mutationFn: api.createStaff, onSuccess: invalidate })
+}
+
+export function useUpdateStaff(id: number) {
+  const invalidate = useInvalidateStaff()
+  return useMutation({
+    mutationFn: (input: { fullName?: string; phone?: string }) => api.updateStaff(id, input),
+    onSuccess: invalidate,
+  })
+}
+
+export function useSetStaffZones(id: number) {
+  const invalidate = useInvalidateStaff()
+  return useMutation({
+    mutationFn: (zoneIds: number[]) => api.setStaffZones(id, zoneIds),
+    onSuccess: invalidate,
+    onError: toastError,
+  })
+}
+
+export function useSetUserLocked() {
+  const invalidate = useInvalidateStaff()
+  return useMutation({
+    mutationFn: ({ id, locked }: { id: number; locked: boolean }) =>
+      api.setUserLocked(id, locked),
+    onSuccess: invalidate,
+    onError: toastError,
+  })
+}
+
+export function useUnavailabilities(staffId: number) {
+  return useQuery({
+    queryKey: staffKeys.unavailabilities(staffId),
+    queryFn: () => api.fetchUnavailabilities(staffId),
+  })
+}
+
+export function useCreateUnavailability(staffId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { startAt: string; endAt: string; reason?: string }) =>
+      api.createUnavailability(staffId, input),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: staffKeys.unavailabilities(staffId) }),
+  })
+}
+
+export function useDeleteUnavailability(staffId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.deleteUnavailability(staffId, id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: staffKeys.unavailabilities(staffId) }),
     onError: toastError,
   })
 }

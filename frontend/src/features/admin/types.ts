@@ -91,6 +91,42 @@ export interface WardFilters {
   pageSize: number
 }
 
+export interface Staff {
+  id: number
+  email: string
+  phone: string
+  fullName: string
+  role: 'STAFF'
+  status: 'ACTIVE' | 'LOCKED'
+  mustChangePassword: boolean
+  createdAt: string
+  zones: { id: number; name: string; isActive: boolean; provinceId: number }[]
+}
+
+export interface StaffFilters {
+  zoneId?: number
+  status?: Staff['status']
+  q?: string
+  page: number
+  pageSize: number
+}
+
+export interface CreateStaffInput {
+  fullName: string
+  email: string
+  phone: string
+  password: string
+}
+
+export interface Unavailability {
+  id: number
+  startAt: string
+  endAt: string
+  reason: string | null
+  createdAt: string
+  creator: { id: number; fullName: string }
+}
+
 export interface Paginated<T> {
   items: T[]
   total: number

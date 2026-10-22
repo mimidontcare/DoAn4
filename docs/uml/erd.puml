@@ -107,32 +107,41 @@ entity "service_items" as service_items {
   * created_at, updated_at : DATETIME
 }
 
-' ---------- Nhân viên, địa chỉ (Phase 3) ----------
+' ---------- Nhân viên, địa chỉ (Phase 3) — ERD bản 1 ----------
 
-entity "staff_zones\n(Phase 3)" as staff_zones <<planned>> {
+entity "staff_zones" as staff_zones {
   * staff_id : INT <<PK, FK>>
   * zone_id : INT <<PK, FK>>
+  ..
+  IDX (zone_id)
 }
 
-entity "staff_unavailabilities\n(Phase 3)" as staff_unavailabilities <<planned>> {
+entity "staff_unavailabilities" as staff_unavailabilities {
   * id : INT <<PK>>
   --
   * staff_id : INT <<FK>>
   * start_at, end_at : DATETIME (UTC)
-  reason : VARCHAR
+  reason : VARCHAR(255)
   * created_by : INT <<FK>>
+  * created_at : DATETIME
+  ..
+  IDX (staff_id, start_at)
 }
 
-entity "addresses\n(Phase 3)" as addresses <<planned>> {
+entity "addresses" as addresses {
   * id : INT <<PK>>
   --
   * user_id : INT <<FK>>
   * ward_id : INT <<FK>>
-  * detail : VARCHAR
-  label : VARCHAR
-  * contact_name, contact_phone : VARCHAR
+  * detail : VARCHAR(255)
+  label : VARCHAR(50)
+  * contact_name : VARCHAR(100)
+  * contact_phone : VARCHAR(20)
   * is_default : BOOLEAN
   * is_deleted : BOOLEAN
+  * created_at, updated_at : DATETIME
+  ..
+  IDX (user_id, is_deleted)
 }
 
 ' ---------- Booking (Phase 4–5) ----------
@@ -240,6 +249,7 @@ services ||--o{ service_items
 users ||--o{ staff_zones : "STAFF"
 service_zones ||--o{ staff_zones
 users ||--o{ staff_unavailabilities : "STAFF"
+users ||--o{ staff_unavailabilities : "created_by (ADMIN)"
 users ||--o{ addresses : "CUSTOMER"
 wards ||--o{ addresses
 
