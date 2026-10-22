@@ -1,20 +1,27 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 import { ChangePasswordPage } from '@/features/auth/pages/ChangePasswordPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
-import { HealthStatus } from '@/features/health/HealthStatus'
+import { AdminAreasPage } from '@/features/admin/pages/AdminAreasPage'
+import { AdminServiceDetailPage } from '@/features/admin/pages/AdminServiceDetailPage'
+import { AdminServicesPage } from '@/features/admin/pages/AdminServicesPage'
+import { ServiceDetailPage } from '@/features/catalog/pages/ServiceDetailPage'
+import { ServicesPage } from '@/features/catalog/pages/ServicesPage'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { CustomerLayout } from '@/layouts/CustomerLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { StaffLayout } from '@/layouts/StaffLayout'
 import { GuestOnly, RequireAuth } from './guards'
 
-// Nội dung từng khu vực còn là placeholder, được thay ở các phase sau.
+// Khu vực khách hàng và nhân viên còn là placeholder, được thay ở các phase sau.
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <PublicLayout />,
-    children: [{ index: true, element: <HealthStatus /> }],
+    children: [
+      { index: true, element: <ServicesPage /> },
+      { path: 'services/:slug', element: <ServiceDetailPage /> },
+    ],
   },
   {
     element: <GuestOnly />,
@@ -53,7 +60,12 @@ export const router = createBrowserRouter([
       {
         path: '/admin',
         element: <AdminLayout />,
-        children: [{ index: true, element: <p>Khu vực quản trị</p> }],
+        children: [
+          { index: true, element: <Navigate to="services" replace /> },
+          { path: 'services', element: <AdminServicesPage /> },
+          { path: 'services/:id', element: <AdminServiceDetailPage /> },
+          { path: 'areas', element: <AdminAreasPage /> },
+        ],
       },
     ],
   },

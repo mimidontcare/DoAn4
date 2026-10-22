@@ -1,0 +1,49 @@
+@startuml state-booking
+' State machine booking. Nguồn: Master Plan v2 mục 3.2, 4 (B, C, R), D6.
+' Mọi chuyển trạng thái đi qua một hàm duy nhất (booking-state.ts) và ghi booking_status_histories (B02).
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+hide empty description
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #1E40AF
+  ArrowColor #1E3A8A
+}
+
+state PENDING : Chờ phân công
+state CONFIRMED : Đã đủ nhóm, có 1 trưởng nhóm (Q04)
+state IN_PROGRESS : Đang thực hiện
+state COMPLETED : Hoàn thành
+state CANCELLED : Đã hủy\nlý do: CUSTOMER_REQUEST, CUSTOMER_NO_SHOW,\nNO_STAFF_AVAILABLE, ADMIN_DECISION, OTHER (B04)
+
+[*] --> PENDING : Khách đặt (C07)
+
+PENDING --> CONFIRMED : Admin phân công đủ staff_count người\n+ trưởng nhóm (A05, T06)
+PENDING --> CANCELLED : Khách hủy tự do\n/ Admin hủy (vd NO_STAFF_AVAILABLE)\n/ System tự hủy khi còn < 2 giờ [O]
+
+CONFIRMED --> PENDING : Nhân viên từ chối (S02)\n/ đổi lịch mà nhóm cũ không rảnh [O]
+CONFIRMED --> IN_PROGRESS : Trưởng nhóm check-in\n[30 phút trước → 60 phút sau giờ bắt đầu]
+CONFIRMED --> CANCELLED : Khách hủy [còn ≥ 2 giờ;\n< 12 giờ thì tăng late_cancel_count]\n/ Admin hủy\n/ Trưởng nhóm báo vắng mặt [sau 30 phút] (S07)
+
+IN_PROGRESS --> COMPLETED : Trưởng nhóm hoàn thành\n[không còn đề xuất điều chỉnh đang chờ] (S05)
+
+COMPLETED --> [*]
+CANCELLED --> [*]
+
+note right of IN_PROGRESS
+  Điều chỉnh khối lượng (A01–A05) không đổi trạng thái:
+  adjustment_status NONE → PENDING → ACCEPTED / REJECTED,
+  vẫn ghi lịch sử (action ADJUST).
+  Từ IN_PROGRESS khách không hủy được.
+end note
+
+note bottom of COMPLETED
+  Trạng thái cuối (B01).
+  Thanh toán tách riêng (D6): payment_status UNPAID → PAID,
+  chỉ khi COMPLETED (B03), do trưởng nhóm hoặc admin xác nhận.
+  Khách đánh giá trong 7 ngày (V01).
+end note
+
+@enduml

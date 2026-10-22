@@ -17,6 +17,23 @@ if (!baseURL) {
 
 export const apiClient = axios.create({ baseURL })
 
+/** Lấy data từ response thành công; data null là phản hồi sai dạng. */
+export function unwrap<T>(body: ApiResponse<T>): T {
+  if (body.data === null) {
+    throw new Error('Phản hồi từ máy chủ không hợp lệ')
+  }
+  return body.data
+}
+
+/**
+ * Ảnh upload lưu dạng đường dẫn tương đối (/uploads/...) ở máy chủ backend, nên ghép
+ * với origin của API. URL tuyệt đối (vd ảnh trên CDN) giữ nguyên.
+ */
+export function resolveAssetUrl(url: string | null): string | null {
+  if (!url) return null
+  return url.startsWith('/') ? new URL(url, baseURL).toString() : url
+}
+
 // 401 ở các route này là kết quả nghiệp vụ (sai mật khẩu, token hỏng), không phải hết hạn access token.
 const NO_REFRESH_URLS = ['/auth/login', '/auth/register', '/auth/refresh']
 

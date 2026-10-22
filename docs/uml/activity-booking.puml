@@ -1,0 +1,102 @@
+@startuml activity-booking
+' Activity: khách đặt lịch (C05 → C06 → C07). Nguồn: Master Plan v2 mục 3.1, 3.3, 4 (P, Q, T, Z), 13, 14.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam ActivityBorderColor #1E40AF
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #1E40AF
+skinparam ArrowColor #1E3A8A
+skinparam SwimlaneBorderColor #BFDBFE
+
+|Khách hàng|
+start
+:Xem danh sách dịch vụ, chọn một dịch vụ (C05);
+:Nhập số lượng từng hạng mục
+(vd 80 m² sàn, 1 sofa 3 chỗ);
+
+if (Đã đăng nhập?) then (chưa)
+  :Đăng nhập / đăng ký;
+  note right: Quay về đúng bước đang đặt
+else (rồi)
+endif
+
+:Chọn địa chỉ (phường/xã) và ngày;
+
+|Hệ thống|
+:Nhận yêu cầu báo giá (POST /bookings/quote);
+if (Phường đang hoạt động và thuộc khu vực? (Z01)) then (không)
+  |Khách hàng|
+  :Thông báo ngoài vùng phục vụ;
+  stop
+else (có)
+endif
+
+|Hệ thống|
+if (Số lượng trong [min_qty, max_qty],
+hạng mục bắt buộc có số lượng > 0? (Q01)) then (không)
+  |Khách hàng|
+  :Báo lỗi khối lượng, sửa lại;
+  stop
+else (có)
+endif
+
+|Hệ thống|
+:Tính giá tạm tính (P01, P04):
+items_total = Σ quantity × unit_price
+subtotal = max(items_total, min_charge)
+total làm tròn 1.000đ;
+:Tính phút công và số nhân viên (Q02):
+man_minutes = Σ quantity × minutes_per_unit
+staff_count = max(1, ceil(man_minutes / 240));
+
+if (staff_count > MAX_STAFF_PER_BOOKING? (Q03)) then (có)
+  |Khách hàng|
+  :"Đơn quá lớn, vui lòng liên hệ";
+  stop
+else (không)
+endif
+
+|Hệ thống|
+:duration = ceil(man_minutes / staff_count), làm tròn lên bội 30 phút;
+:Sinh giờ bắt đầu bước 30 phút trong 07:00–20:00,
+kết thúc ≤ 20:00, đặt trước 3 giờ – 14 ngày (T01, T02, T07);
+:Giữ giờ có số nhân viên rảnh trong khu vực ≥ staff_count
+(tính buffer 30 phút, lịch nghỉ, trừ đơn PENDING chồng giờ) (T03–T05);
+
+|Khách hàng|
+:Xem giá, số người, thời lượng, danh sách giờ còn trống;
+:Chọn giờ, ghi chú, bấm xác nhận;
+
+|Hệ thống|
+:Nhận yêu cầu tạo booking (POST /bookings);
+:Kiểm tra lại toàn bộ ở server
+(giá client gửi lên bị bỏ qua — P01);
+
+if (Khách đã có 3 đơn PENDING? (C07)) then (có)
+  |Khách hàng|
+  :Báo vượt giới hạn đơn đang chờ (422);
+  stop
+else (chưa)
+endif
+
+|Hệ thống|
+if (Giờ đã chọn vẫn còn đủ người?) then (không)
+  |Khách hàng|
+  :Báo giờ vừa hết chỗ (409), chọn giờ khác;
+  stop
+else (còn)
+endif
+
+|Hệ thống|
+:Tạo booking PENDING;
+:Snapshot tên dịch vụ, tên hạng mục, đơn giá,
+địa chỉ, người liên hệ (P02);
+:Ghi booking_status_histories (→ PENDING) (B02);
+
+|Khách hàng|
+:Xem mã đơn, chờ admin phân công nhóm;
+stop
+
+@enduml

@@ -1,0 +1,257 @@
+@startuml erd
+' ERD đầy đủ 16 bảng theo Master Plan v2 (mục 7, 8).
+' Bảng nền trắng: đã có trong database (migration đã chạy).
+' Bảng nền xám (<<planned>>): thiết kế, sẽ tạo ở phase ghi trong tiêu đề.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1E40AF
+  ArrowColor #1E3A8A
+}
+skinparam class<<planned>> {
+  BackgroundColor #E9EEF6
+  BorderColor #8091AD
+}
+
+' ---------- Tài khoản (Phase 1) ----------
+
+entity "users" as users {
+  * id : INT <<PK>>
+  --
+  * email : VARCHAR(191) <<UQ>>
+  * phone : VARCHAR(20) <<UQ>>
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(100)
+  * role : ENUM(CUSTOMER, STAFF, ADMIN)
+  * status : ENUM(ACTIVE, LOCKED)
+  * must_change_password : BOOLEAN
+  * late_cancel_count : INT
+  * created_at, updated_at : DATETIME
+}
+
+entity "refresh_tokens" as refresh_tokens {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * token_hash : CHAR(64) <<UQ>>
+  * expires_at : DATETIME
+  revoked_at : DATETIME
+  * created_at : DATETIME
+}
+
+' ---------- Vùng phục vụ (Phase 2) ----------
+
+entity "provinces" as provinces {
+  * id : INT <<PK>>
+  --
+  * code : VARCHAR(10) <<UQ>>
+  * name : VARCHAR(100)
+  * is_active : BOOLEAN
+}
+
+entity "service_zones" as service_zones {
+  * id : INT <<PK>>
+  --
+  * province_id : INT <<FK>>
+  * name : VARCHAR(100)
+  * is_active : BOOLEAN
+  * created_at, updated_at : DATETIME
+  ..
+  UQ (province_id, name)
+}
+
+entity "wards" as wards {
+  * id : INT <<PK>>
+  --
+  * province_id : INT <<FK>>
+  zone_id : INT <<FK>>
+  * code : VARCHAR(10) <<UQ>>
+  * name : VARCHAR(100)
+  * type : ENUM(PHUONG, XA)
+  old_name_hint : VARCHAR(255)
+  * is_active : BOOLEAN
+}
+
+' ---------- Catalog (Phase 2) ----------
+
+entity "services" as services {
+  * id : INT <<PK>>
+  --
+  * name : VARCHAR(150)
+  * slug : VARCHAR(160) <<UQ>>
+  description : TEXT
+  image_url : VARCHAR(500)
+  * min_charge : INT (VND)
+  * sort_order : INT
+  * is_active : BOOLEAN
+  * created_at, updated_at : DATETIME
+}
+
+entity "service_items" as service_items {
+  * id : INT <<PK>>
+  --
+  * service_id : INT <<FK>>
+  * name : VARCHAR(150)
+  * unit : ENUM(UNIT, M2)
+  * unit_price : INT (VND)
+  * minutes_per_unit : INT
+  * min_qty, max_qty : INT
+  * is_required : BOOLEAN
+  * sort_order : INT
+  * is_active : BOOLEAN
+  * created_at, updated_at : DATETIME
+}
+
+' ---------- Nhân viên, địa chỉ (Phase 3) ----------
+
+entity "staff_zones\n(Phase 3)" as staff_zones <<planned>> {
+  * staff_id : INT <<PK, FK>>
+  * zone_id : INT <<PK, FK>>
+}
+
+entity "staff_unavailabilities\n(Phase 3)" as staff_unavailabilities <<planned>> {
+  * id : INT <<PK>>
+  --
+  * staff_id : INT <<FK>>
+  * start_at, end_at : DATETIME (UTC)
+  reason : VARCHAR
+  * created_by : INT <<FK>>
+}
+
+entity "addresses\n(Phase 3)" as addresses <<planned>> {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * ward_id : INT <<FK>>
+  * detail : VARCHAR
+  label : VARCHAR
+  * contact_name, contact_phone : VARCHAR
+  * is_default : BOOLEAN
+  * is_deleted : BOOLEAN
+}
+
+' ---------- Booking (Phase 4–5) ----------
+
+entity "bookings\n(Phase 4)" as bookings <<planned>> {
+  * id : INT <<PK>>
+  --
+  * code : VARCHAR <<UQ>>
+  * customer_id : INT <<FK>>
+  * service_id : INT <<FK>>
+  * ward_id : INT <<FK>>
+  * zone_id : INT <<FK>>
+  .. snapshot ..
+  * service_name, address_text : VARCHAR
+  * contact_name, contact_phone : VARCHAR
+  .. thời gian, khối lượng ..
+  * start_at, end_at : DATETIME (UTC)
+  * man_minutes, staff_count, duration_minutes : INT
+  .. tiền (VND) ..
+  * items_total, subtotal, surcharge, total_price : INT
+  .. trạng thái ..
+  * status : ENUM
+  * payment_status : ENUM
+  payment_method : ENUM
+  paid_at : DATETIME
+  paid_confirmed_by : INT <<FK>>
+  * adjustment_status : ENUM(NONE, PENDING, ACCEPTED, REJECTED)
+  note : TEXT
+  cancel_reason, cancel_note : VARCHAR
+  cancelled_by : INT <<FK>>
+  cancelled_at : DATETIME
+  * reschedule_count : INT
+  * version : INT
+  * created_at, updated_at : DATETIME
+  ..
+  IDX (status, start_at), (zone_id, start_at)
+}
+
+entity "booking_items\n(Phase 4)" as booking_items <<planned>> {
+  * id : INT <<PK>>
+  --
+  * booking_id : INT <<FK>>
+  * service_item_id : INT <<FK>>
+  * name_snapshot : VARCHAR
+  * unit : ENUM(UNIT, M2)
+  * unit_price, minutes_per_unit : INT
+  * quantity : INT
+  proposed_quantity : INT
+  * amount : INT (VND)
+}
+
+entity "booking_assignments\n(Phase 5)" as booking_assignments <<planned>> {
+  * booking_id : INT <<PK, FK>>
+  * staff_id : INT <<PK, FK>>
+  --
+  * is_leader : BOOLEAN
+  * assigned_by : INT <<FK>>
+  * assigned_at : DATETIME
+  ..
+  IDX (staff_id)
+}
+
+entity "booking_status_histories\n(Phase 4)" as booking_status_histories <<planned>> {
+  * id : INT <<PK>>
+  --
+  * booking_id : INT <<FK>>
+  from_status : ENUM
+  * to_status : ENUM
+  * action : VARCHAR
+  changed_by : INT <<FK>>
+  note : TEXT
+  * created_at : DATETIME
+}
+
+' ---------- Đánh giá, tùy chọn (Phase 7) ----------
+
+entity "reviews\n(Phase 7)" as reviews <<planned>> {
+  * id : INT <<PK>>
+  --
+  * booking_id : INT <<FK, UQ>>
+  * customer_id : INT <<FK>>
+  * rating : INT (1–5)
+  comment : TEXT
+  * is_hidden : BOOLEAN
+  * created_at : DATETIME
+}
+
+entity "blocked_dates\n(Phase 7, tùy chọn)" as blocked_dates <<planned>> {
+  * id : INT <<PK>>
+  --
+  * date : DATE <<UQ>>
+  reason : VARCHAR
+}
+
+' ---------- Quan hệ (mục 8) ----------
+
+users ||--o{ refresh_tokens
+
+provinces ||--o{ service_zones
+provinces ||--o{ wards
+service_zones |o--o{ wards : "zone_id (0..1)"
+
+services ||--o{ service_items
+
+users ||--o{ staff_zones : "STAFF"
+service_zones ||--o{ staff_zones
+users ||--o{ staff_unavailabilities : "STAFF"
+users ||--o{ addresses : "CUSTOMER"
+wards ||--o{ addresses
+
+users ||--o{ bookings : "CUSTOMER"
+services ||--o{ bookings
+wards ||--o{ bookings
+service_zones ||--o{ bookings
+bookings ||--|{ booking_items
+service_items ||--o{ booking_items
+bookings ||--o{ booking_assignments : "1..4, 1 trưởng nhóm"
+users ||--o{ booking_assignments : "STAFF"
+bookings ||--o{ booking_status_histories
+bookings ||--o| reviews
+
+@enduml
