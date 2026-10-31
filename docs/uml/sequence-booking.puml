@@ -1,0 +1,78 @@
+@startuml sequence-booking
+' Sequence: khách báo giá và tạo booking (C06, C07). Nguồn: Master Plan v2 mục 3.1, 3.3, 4, 12, 14.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam SequenceLifeLineBorderColor #1E40AF
+skinparam ArrowColor #1E3A8A
+skinparam ParticipantBorderColor #1E40AF
+skinparam ParticipantBackgroundColor #FFFFFF
+
+actor "Khách hàng" as C
+participant "Wizard\n(React)" as FE
+participant "Customer\nBookingsController" as API
+participant "BookingsService" as S
+participant "PricingService" as P
+participant "AvailabilityService" as A
+database "MySQL" as DB
+
+== Báo giá ==
+C -> FE: Nhập khối lượng, chọn địa chỉ, ngày
+FE -> API: POST /bookings/quote
+API -> S: quote(customerId, dto)
+S -> DB: Lấy dịch vụ đang hoạt động, địa chỉ của khách
+alt Không có dịch vụ hoặc địa chỉ không thuộc khách
+  S --> FE: 404
+end
+S -> DB: Kiểm tra phường (Z01)
+alt Ngoài vùng phục vụ
+  S --> FE: 422
+end
+S -> P: calculate(service, items)
+alt Sai khối lượng (Q01) hoặc vượt MAX_STAFF (Q03)
+  P --> FE: 422
+end
+P --> S: Giá, phút công, số người, thời lượng
+S -> A: listStartTimes(zoneId, date, staffCount, duration)
+A -> DB: Nhân viên khu vực, lịch nghỉ, đơn PENDING chồng giờ
+A --> S: Giờ còn đủ người (T01–T05)
+S --> FE: 200: giá chi tiết + availableStartTimes
+FE --> C: Hiện giá và các giờ trống
+
+== Tạo đơn ==
+C -> FE: Chọn giờ, xác nhận
+FE -> API: POST /bookings (startAt, expectedTotal, note)
+API -> S: create(customerId, dto)
+S -> P: Tính lại giá từ bảng giá hiện tại (P01)
+alt total khác expectedTotal
+  S --> FE: 409: giá đã đổi
+  FE -> API: Báo giá lại
+end
+S -> A: assertStartTimeAllowed (T01, T02, T07)
+alt Giờ không hợp lệ
+  A --> FE: 422
+end
+
+group Transaction
+  S -> DB: SELECT user FOR UPDATE
+  note right of DB: Request cùng khách chạy lần lượt:\nchống bấm đặt 2 lần, giữ đúng giới hạn PENDING
+  S -> DB: Tìm đơn trùng dịch vụ và giờ
+  alt Đã có đơn
+    S --> FE: 409
+  end
+  S -> DB: Đếm đơn PENDING (C07)
+  alt Đạt giới hạn
+    S --> FE: 422
+  end
+  S -> A: isSlotAvailable(tx, ...)
+  alt Giờ vừa hết chỗ (T05)
+    A --> FE: 409: chọn giờ khác
+  end
+  S -> DB: Tạo booking PENDING + booking_items (snapshot P02)
+  S -> DB: Ghi booking_status_histories (CREATE, B02)
+end
+
+S --> FE: 201: chi tiết đơn
+FE --> C: Hiện mã đơn, chuyển tới trang chi tiết
+@enduml

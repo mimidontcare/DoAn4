@@ -134,7 +134,8 @@ Ghi chú:
 - Phase 1 — Auth: đã xong phần code và kiểm tra, gồm backend và frontend; đã gộp vào `master`. UML (sequence đăng nhập + refresh) để làm khi viết báo cáo.
 - Phase 2 — Catalog + vùng phục vụ: đã xong phần code và kiểm tra, gồm backend (module `catalog`, `areas`, `storage`), frontend (trang dịch vụ, admin dịch vụ và vùng) và UML (`docs/uml/erd.puml`, `activity-booking.puml`, `state-booking.puml`); đã gộp vào `master`. Seed phường/xã (`backend/prisma/data/areas/ha-noi.json`) là dữ liệu mẫu, mã `DMxxx` tạm thời: phải thay bằng danh sách và mã chính thức trước Phase 8.
 - Phase 3 — Nhân viên + địa chỉ: đã xong phần code và kiểm tra, gồm backend (module `staff`, địa chỉ và khóa tài khoản trong `users`), frontend (admin nhân viên, `features/account` cho khách) và ERD bản 1; đã gộp vào `master`. Còn để Phase 5: U03 (không khóa nhân viên còn booking tương lai) và A04 (lịch nghỉ không trùng booking đã giao), đã đánh dấu `TODO Phase 5` trong code.
+- Phase 4 — Booking lõi: đã xong phần code và kiểm tra, gồm backend (module `bookings`: quote, tạo, danh sách, chi tiết, hủy), frontend (`features/booking`: wizard, danh sách, chi tiết, hủy) và UML (`docs/uml/sequence-booking.puml`); đã gộp vào `master`. `POST /bookings` có thêm `expectedTotal` (chỉ so sánh, lệch → 409). Bảng `booking_assignments` để Phase 5; `AvailabilityService` đã đánh dấu `TODO Phase 5`.
 - Frontend cần `VITE_APP_TIMEZONE` trong `frontend/.env` (xem `.env.example`).
-- Phase hiện tại: **Phase 4 — Booking lõi** (chưa bắt đầu, chờ spec được duyệt).
+- Phase hiện tại: **Phase 5 — Phân công nhóm** (chưa bắt đầu, chờ spec được duyệt).
 - Giao diện frontend theo `docs/DESIGN_SYSTEM.md`.
 - Cập nhật mục này khi hoàn thành mỗi phase.
