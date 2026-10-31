@@ -4,6 +4,8 @@ import { ChangePasswordPage } from '@/features/auth/pages/ChangePasswordPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { AdminAreasPage } from '@/features/admin/pages/AdminAreasPage'
+import { AdminBookingDetailPage } from '@/features/admin/pages/AdminBookingDetailPage'
+import { AdminBookingsPage } from '@/features/admin/pages/AdminBookingsPage'
 import { AdminServiceDetailPage } from '@/features/admin/pages/AdminServiceDetailPage'
 import { AdminServicesPage } from '@/features/admin/pages/AdminServicesPage'
 import { AdminStaffDetailPage } from '@/features/admin/pages/AdminStaffDetailPage'
@@ -77,7 +79,9 @@ export const router = createBrowserRouter([
         path: '/admin',
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Navigate to="services" replace /> },
+          { index: true, element: <Navigate to="bookings" replace /> },
+          { path: 'bookings', element: <AdminBookingsPage /> },
+          { path: 'bookings/:id', element: <AdminBookingDetailPage /> },
           { path: 'services', element: <AdminServicesPage /> },
           { path: 'services/:id', element: <AdminServiceDetailPage /> },
           { path: 'areas', element: <AdminAreasPage /> },

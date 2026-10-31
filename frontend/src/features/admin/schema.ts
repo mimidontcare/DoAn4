@@ -84,3 +84,24 @@ export const unavailabilitySchema = z
     message: 'Kết thúc phải sau bắt đầu',
   })
 export type UnavailabilityValues = z.infer<typeof unavailabilitySchema>
+
+export function buildAssignTeamSchema(staffCount: number) {
+  return z.object({
+    staffIds: z.array(z.number()).length(staffCount, `Chọn đúng ${staffCount} nhân viên`),
+    leaderId: z.number().min(1, 'Chọn trưởng nhóm'),
+  })
+}
+export type AssignTeamValues = z.infer<ReturnType<typeof buildAssignTeamSchema>>
+
+export const ADMIN_CANCEL_REASONS = [
+  'NO_STAFF_AVAILABLE',
+  'CUSTOMER_REQUEST',
+  'ADMIN_DECISION',
+  'OTHER',
+] as const
+
+export const adminCancelSchema = z.object({
+  reason: z.enum(ADMIN_CANCEL_REASONS),
+  note: z.string().trim().max(500, 'Ghi chú tối đa 500 ký tự'),
+})
+export type AdminCancelValues = z.infer<typeof adminCancelSchema>

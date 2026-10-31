@@ -8,7 +8,15 @@ import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/client'
 import { catalogKeys } from '@/features/catalog/hooks'
 import * as api from './api'
-import type { ServiceInput, ServiceItemInput, StaffFilters, WardFilters } from './types'
+import type {
+  AdminBookingFilters,
+  AdminCancelInput,
+  AssignTeamInput,
+  ServiceInput,
+  ServiceItemInput,
+  StaffFilters,
+  WardFilters,
+} from './types'
 
 export const adminKeys = {
   services: ['admin', 'services'] as const,
@@ -17,6 +25,58 @@ export const adminKeys = {
   zones: (provinceId: number) => ['admin', 'zones', provinceId] as const,
   wardsRoot: ['admin', 'wards'] as const,
   wards: (filters: WardFilters) => ['admin', 'wards', filters] as const,
+  bookingsRoot: ['admin', 'bookings'] as const,
+  bookings: (filters: AdminBookingFilters) => ['admin', 'bookings', 'list', filters] as const,
+  booking: (id: number) => ['admin', 'bookings', 'detail', id] as const,
+  availableStaff: (id: number) => ['admin', 'bookings', 'available-staff', id] as const,
+}
+
+export function useAdminBookings(filters: AdminBookingFilters) {
+  return useQuery({
+    queryKey: adminKeys.bookings(filters),
+    queryFn: () => api.fetchAdminBookings(filters),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useAdminBooking(id: number) {
+  return useQuery({
+    queryKey: adminKeys.booking(id),
+    queryFn: () => api.fetchAdminBooking(id),
+    enabled: Number.isInteger(id) && id > 0,
+  })
+}
+
+/** Lấy mới mỗi lần mở dialog: danh sách người rảnh đổi theo các phân công khác. */
+export function useAvailableStaff(id: number, enabled: boolean) {
+  return useQuery({
+    queryKey: adminKeys.availableStaff(id),
+    queryFn: () => api.fetchAvailableStaff(id),
+    enabled,
+    gcTime: 0,
+  })
+}
+
+function useInvalidateBookings() {
+  const queryClient = useQueryClient()
+  return () => queryClient.invalidateQueries({ queryKey: adminKeys.bookingsRoot })
+}
+
+export function useAssignTeam(id: number) {
+  const invalidate = useInvalidateBookings()
+  return useMutation({
+    mutationFn: (input: AssignTeamInput) => api.assignTeam(id, input),
+    // Lỗi 409 cũng làm mới: version và danh sách người rảnh đã đổi.
+    onSettled: invalidate,
+  })
+}
+
+export function useCancelAdminBooking(id: number) {
+  const invalidate = useInvalidateBookings()
+  return useMutation({
+    mutationFn: (input: AdminCancelInput) => api.cancelAdminBooking(id, input),
+    onSettled: invalidate,
+  })
 }
 
 /** Mọi thay đổi catalog làm mới cả dữ liệu admin lẫn trang công khai. */

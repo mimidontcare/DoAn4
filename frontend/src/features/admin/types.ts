@@ -1,3 +1,9 @@
+import type {
+  BookingDetail,
+  BookingStatus,
+  BookingSummary,
+  CancelReason,
+} from '@/features/booking/types'
 import type { PricingUnit, WardType } from '@/features/catalog/types'
 
 export interface AdminServiceItem {
@@ -125,6 +131,45 @@ export interface Unavailability {
   reason: string | null
   createdAt: string
   creator: { id: number; fullName: string }
+}
+
+export interface AdminBookingFilters {
+  status?: BookingStatus
+  q?: string
+  page: number
+  pageSize: number
+}
+
+export interface AdminBookingSummary extends BookingSummary {
+  customer: { id: number; fullName: string; phone: string }
+  assignedCount: number
+}
+
+export interface AdminBookingDetail extends Omit<BookingDetail, 'team'> {
+  version: number
+  zone: { id: number; name: string }
+  customer: { id: number; fullName: string; phone: string; lateCancelCount: number }
+  team: { id: number; fullName: string; phone: string; isLeader: boolean }[]
+}
+
+export interface AvailableStaff {
+  id: number
+  fullName: string
+  phone: string
+  isCurrentMember: boolean
+}
+
+export interface AssignTeamInput {
+  staffIds: number[]
+  leaderId: number
+  version: number
+}
+
+export type AdminCancelReason = Exclude<CancelReason, 'CUSTOMER_NO_SHOW'>
+
+export interface AdminCancelInput {
+  reason: AdminCancelReason
+  note?: string
 }
 
 export interface Paginated<T> {

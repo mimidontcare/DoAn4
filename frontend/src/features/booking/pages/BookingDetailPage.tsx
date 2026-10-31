@@ -118,6 +118,26 @@ export function BookingDetailPage() {
         </section>
       </div>
 
+      {booking.team.length > 0 && (
+        <section aria-labelledby="team-heading" className="grid gap-2 rounded-xl border bg-card p-4">
+          <h2 id="team-heading" className="text-lg font-semibold">
+            Nhóm nhân viên
+          </h2>
+          <ul className="grid gap-1">
+            {booking.team.map((member, index) => (
+              <li key={index} className="flex flex-wrap items-center gap-2">
+                {member.fullName}
+                {member.isLeader && (
+                  <span className="rounded-md bg-accent px-2 py-0.5 text-sm font-medium text-accent-foreground">
+                    Trưởng nhóm
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section aria-labelledby="history-heading" className="grid gap-3 rounded-xl border bg-card p-4">
         <h2 id="history-heading" className="text-lg font-semibold">
           Lịch sử

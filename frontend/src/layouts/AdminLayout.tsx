@@ -1,9 +1,10 @@
-import { MapPinned, Tags, Users } from 'lucide-react'
+import { ClipboardList, MapPinned, Tags, Users } from 'lucide-react'
 import { Outlet } from 'react-router'
 import { AppHeader } from '@/components/common/AppHeader'
 import { AreaNav, type AreaNavItem } from '@/components/common/AreaNav'
 
 const NAV: AreaNavItem[] = [
+  { to: '/admin/bookings', label: 'Đơn đặt lịch', icon: ClipboardList },
   { to: '/admin/services', label: 'Dịch vụ', icon: Tags },
   { to: '/admin/areas', label: 'Vùng phục vụ', icon: MapPinned },
   { to: '/admin/staff', label: 'Nhân viên', icon: Users },

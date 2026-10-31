@@ -87,6 +87,7 @@ export interface BookingDetail extends BookingSummary {
   cancelReason: CancelReason | null
   cancelNote: string | null
   cancelledAt: string | null
+  team: { fullName: string; isLeader: boolean }[]
   items: {
     id: number
     serviceItemId: number

@@ -1,8 +1,14 @@
 import { apiClient, unwrap, type ApiResponse } from '@/api/client'
 import type {
+  AdminBookingDetail,
+  AdminBookingFilters,
+  AdminBookingSummary,
+  AdminCancelInput,
   AdminService,
   AdminServiceItem,
   AdminServiceSummary,
+  AssignTeamInput,
+  AvailableStaff,
   CreateStaffInput,
   Paginated,
   Province,
@@ -15,6 +21,48 @@ import type {
   WardFilters,
   Zone,
 } from './types'
+
+// ---------- Đơn đặt lịch ----------
+
+export async function fetchAdminBookings(
+  filters: AdminBookingFilters,
+): Promise<Paginated<AdminBookingSummary>> {
+  const res = await apiClient.get<ApiResponse<Paginated<AdminBookingSummary>>>('/admin/bookings', {
+    params: { ...filters, q: filters.q || undefined },
+  })
+  return unwrap(res.data)
+}
+
+export async function fetchAdminBooking(id: number): Promise<AdminBookingDetail> {
+  const res = await apiClient.get<ApiResponse<AdminBookingDetail>>(`/admin/bookings/${id}`)
+  return unwrap(res.data)
+}
+
+export async function fetchAvailableStaff(id: number): Promise<AvailableStaff[]> {
+  const res = await apiClient.get<ApiResponse<AvailableStaff[]>>(
+    `/admin/bookings/${id}/available-staff`,
+  )
+  return unwrap(res.data)
+}
+
+export async function assignTeam(id: number, input: AssignTeamInput): Promise<AdminBookingDetail> {
+  const res = await apiClient.put<ApiResponse<AdminBookingDetail>>(
+    `/admin/bookings/${id}/assignments`,
+    input,
+  )
+  return unwrap(res.data)
+}
+
+export async function cancelAdminBooking(
+  id: number,
+  input: AdminCancelInput,
+): Promise<AdminBookingDetail> {
+  const res = await apiClient.patch<ApiResponse<AdminBookingDetail>>(
+    `/admin/bookings/${id}/cancel`,
+    input,
+  )
+  return unwrap(res.data)
+}
 
 // ---------- Dịch vụ, hạng mục ----------
 
