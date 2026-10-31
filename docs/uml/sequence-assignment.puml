@@ -1,0 +1,72 @@
+@startuml sequence-assignment
+' Sequence: admin phân công nhóm, cơ chế khóa chống trùng lịch (A05, T04, T06, Q04). Nguồn: Master Plan v2 mục 3.1, 4, 7, 12, 14.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam SequenceLifeLineBorderColor #1E40AF
+skinparam ArrowColor #1E3A8A
+skinparam ParticipantBorderColor #1E40AF
+skinparam ParticipantBackgroundColor #FFFFFF
+
+actor "Admin" as A
+participant "Dialog phân công\n(React)" as FE
+participant "AdminBookings\nController" as API
+participant "AssignmentService" as S
+database "MySQL" as DB
+
+== Gợi ý nhân viên ==
+A -> FE: Mở dialog
+FE -> API: GET /admin/bookings/:id/available-staff
+API -> S: listAvailableStaff(id)
+S -> DB: Nhân viên ACTIVE trong khu vực,\nlịch nghỉ, đơn đã giao chồng giờ (tính buffer)
+S --> FE: Danh sách người rảnh
+
+== Phân công ==
+A -> FE: Chọn đủ N người + trưởng nhóm
+FE -> API: PUT /admin/bookings/:id/assignments\n(staffIds, leaderId, version)
+API -> S: assignTeam(adminId, id, dto)
+
+group Transaction READ COMMITTED
+  loop Từng nhân viên theo id tăng dần
+    S -> DB: SELECT id FROM users WHERE id = ? FOR UPDATE
+  end
+  note right of DB
+    Khóa là bước đầu tiên, trước mọi truy vấn.
+    Thứ tự id cố định nên không deadlock;
+    request tranh cùng nhân viên chạy lần lượt.
+  end note
+
+  S -> DB: Đọc booking
+  alt Sai version
+    S --> FE: 409
+  else Sai trạng thái, đã qua giờ, sai số người, trưởng nhóm ngoài nhóm
+    S --> FE: 422
+  end
+
+  S -> DB: Kiểm tra ACTIVE và khu vực
+  alt Có người bị khóa hoặc sai khu vực
+    S --> FE: 422
+  end
+  S -> DB: Kiểm tra lịch nghỉ và trùng lịch (tính buffer)
+  alt Đang nghỉ hoặc trùng lịch
+    S --> FE: 409
+  end
+
+  S -> DB: UPDATE booking WHERE version = ?\n(PENDING → CONFIRMED hoặc giữ CONFIRMED)
+  alt 0 dòng: request khác vừa cập nhật
+    S --> FE: 409
+  end
+  S -> DB: Ghi booking_status_histories (ASSIGN, B02)
+  S -> DB: Xóa nhóm cũ, tạo nhóm mới (1 trưởng nhóm, Q04)
+end
+
+S --> FE: Chi tiết đơn
+FE --> A: Đã phân công
+
+== Hai request tranh cùng một nhân viên ==
+note over S, DB
+  Request A giữ khóa dòng nhân viên, commit phân công.
+  Request B chờ khóa, chạy tiếp và thấy phân công của A → 409.
+end note
+@enduml
