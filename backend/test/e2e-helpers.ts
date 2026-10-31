@@ -28,6 +28,9 @@ export async function createTestApp() {
 
 /** Xóa dữ liệu theo thứ tự khóa ngoại. */
 export async function resetDatabase(prisma: PrismaService) {
+  await prisma.bookingStatusHistory.deleteMany();
+  await prisma.bookingItem.deleteMany();
+  await prisma.booking.deleteMany();
   await prisma.address.deleteMany();
   await prisma.staffUnavailability.deleteMany();
   await prisma.staffZone.deleteMany();

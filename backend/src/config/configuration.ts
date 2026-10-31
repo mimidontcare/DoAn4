@@ -18,6 +18,21 @@ export default () => ({
   customer: {
     maxAddresses: Number(process.env.MAX_ADDRESSES_PER_CUSTOMER),
   },
+  booking: {
+    serviceOpenHour: Number(process.env.SERVICE_OPEN_HOUR),
+    serviceCloseHour: Number(process.env.SERVICE_CLOSE_HOUR),
+    slotStepMinutes: Number(process.env.BOOKING_SLOT_STEP_MINUTES),
+    minLeadHours: Number(process.env.BOOKING_MIN_LEAD_HOURS),
+    maxAdvanceDays: Number(process.env.BOOKING_MAX_ADVANCE_DAYS),
+    staffBufferMinutes: Number(process.env.STAFF_BUFFER_MINUTES),
+    manMinutesPerStaff: Number(process.env.MAN_MINUTES_PER_STAFF),
+    maxStaffPerBooking: Number(process.env.MAX_STAFF_PER_BOOKING),
+    maxPendingPerCustomer: Number(
+      process.env.MAX_PENDING_BOOKINGS_PER_CUSTOMER,
+    ),
+    cancelMinHours: Number(process.env.CANCEL_MIN_HOURS_BEFORE_START),
+    lateCancelHours: Number(process.env.LATE_CANCEL_HOURS),
+  },
   upload: {
     dir: process.env.UPLOAD_DIR,
     maxBytes: Number(process.env.UPLOAD_MAX_BYTES),

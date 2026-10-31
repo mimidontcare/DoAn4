@@ -33,9 +33,13 @@ model User {
 
   refreshTokens         RefreshToken[]
   staffZones            StaffZone[]
-  unavailabilities      StaffUnavailability[] @relation("StaffUnavailabilities")
-  createdUnavailability StaffUnavailability[] @relation("UnavailabilityCreatedBy")
+  unavailabilities      StaffUnavailability[]  @relation("StaffUnavailabilities")
+  createdUnavailability StaffUnavailability[]  @relation("UnavailabilityCreatedBy")
   addresses             Address[]
+  bookings              Booking[]              @relation("BookingCustomer")
+  paidConfirmedBookings Booking[]              @relation("BookingPaidConfirmedBy")
+  cancelledBookings     Booking[]              @relation("BookingCancelledBy")
+  bookingHistories      BookingStatusHistory[]
 
   @@map("users")
 }
@@ -89,6 +93,7 @@ model ServiceZone {
   province   Province    @relation(fields: [provinceId], references: [id])
   wards      Ward[]
   staffZones StaffZone[]
+  bookings   Booking[]
 
   @@unique([provinceId, name])
   @@map("service_zones")
@@ -109,6 +114,7 @@ model Ward {
   province  Province     @relation(fields: [provinceId], references: [id])
   zone      ServiceZone? @relation(fields: [zoneId], references: [id])
   addresses Address[]
+  bookings  Booking[]
 
   @@index([provinceId])
   @@index([zoneId])
@@ -135,7 +141,8 @@ model Service {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  items ServiceItem[]
+  items    ServiceItem[]
+  bookings Booking[]
 
   @@map("services")
 }
@@ -156,7 +163,8 @@ model ServiceItem {
   createdAt      DateTime    @default(now()) @map("created_at")
   updatedAt      DateTime    @updatedAt @map("updated_at")
 
-  service Service @relation(fields: [serviceId], references: [id])
+  service      Service       @relation(fields: [serviceId], references: [id])
+  bookingItems BookingItem[]
 
   @@index([serviceId])
   @@map("service_items")
@@ -220,4 +228,149 @@ model Address {
   @@index([userId, isDeleted])
   @@index([wardId])
   @@map("addresses")
+}
+
+// ---------- Booking (P02, B01–B04) ----------
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+}
+
+enum AdjustmentStatus {
+  NONE
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum CancelReason {
+  CUSTOMER_REQUEST
+  CUSTOMER_NO_SHOW
+  NO_STAFF_AVAILABLE
+  ADMIN_DECISION
+  OTHER
+}
+
+enum BookingAction {
+  CREATE
+  ASSIGN
+  DECLINE
+  CHECK_IN
+  ADJUST
+  COMPLETE
+  PAYMENT
+  CANCEL
+  RESCHEDULE
+}
+
+model Booking {
+  id               Int              @id @default(autoincrement())
+  code             String           @unique @db.VarChar(20)
+  customerId       Int              @map("customer_id")
+  serviceId        Int              @map("service_id")
+  wardId           Int              @map("ward_id")
+  // Denormalize có chủ đích để lọc và thống kê nhanh.
+  zoneId           Int              @map("zone_id")
+  // Snapshot (P02): không phụ thuộc bảng giá hay địa chỉ sau khi tạo.
+  serviceName      String           @map("service_name") @db.VarChar(150)
+  addressText      String           @map("address_text") @db.VarChar(500)
+  contactName      String           @map("contact_name") @db.VarChar(100)
+  contactPhone     String           @map("contact_phone") @db.VarChar(20)
+  // Thời gian lưu UTC (T07).
+  startAt          DateTime         @map("start_at")
+  endAt            DateTime         @map("end_at")
+  manMinutes       Int              @map("man_minutes")
+  staffCount       Int              @map("staff_count")
+  durationMinutes  Int              @map("duration_minutes")
+  // Tiền là số nguyên VND (P03).
+  itemsTotal       Int              @map("items_total")
+  subtotal         Int
+  surcharge        Int              @default(0)
+  totalPrice       Int              @map("total_price")
+  status           BookingStatus    @default(PENDING)
+  paymentStatus    PaymentStatus    @default(UNPAID) @map("payment_status")
+  paymentMethod    PaymentMethod?   @map("payment_method")
+  paidAt           DateTime?        @map("paid_at")
+  paidConfirmedBy  Int?             @map("paid_confirmed_by")
+  adjustmentStatus AdjustmentStatus @default(NONE) @map("adjustment_status")
+  note             String?          @db.VarChar(500)
+  cancelReason     CancelReason?    @map("cancel_reason")
+  cancelNote       String?          @map("cancel_note") @db.VarChar(500)
+  cancelledBy      Int?             @map("cancelled_by")
+  cancelledAt      DateTime?        @map("cancelled_at")
+  rescheduleCount  Int              @default(0) @map("reschedule_count")
+  version          Int              @default(0)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  customer      User                   @relation("BookingCustomer", fields: [customerId], references: [id])
+  service       Service                @relation(fields: [serviceId], references: [id])
+  ward          Ward                   @relation(fields: [wardId], references: [id])
+  zone          ServiceZone            @relation(fields: [zoneId], references: [id])
+  paidConfirmer User?                  @relation("BookingPaidConfirmedBy", fields: [paidConfirmedBy], references: [id])
+  canceller     User?                  @relation("BookingCancelledBy", fields: [cancelledBy], references: [id])
+  items         BookingItem[]
+  histories     BookingStatusHistory[]
+
+  @@index([status, startAt])
+  @@index([zoneId, startAt])
+  @@index([customerId, status])
+  @@map("bookings")
+}
+
+model BookingItem {
+  id               Int         @id @default(autoincrement())
+  bookingId        Int         @map("booking_id")
+  serviceItemId    Int         @map("service_item_id")
+  nameSnapshot     String      @map("name_snapshot") @db.VarChar(150)
+  unit             PricingUnit
+  unitPrice        Int         @map("unit_price")
+  minutesPerUnit   Int         @map("minutes_per_unit")
+  quantity         Int
+  // Khối lượng trưởng nhóm đề xuất, chờ khách xác nhận (A01–A05).
+  proposedQuantity Int?        @map("proposed_quantity")
+  amount           Int
+
+  booking     Booking     @relation(fields: [bookingId], references: [id])
+  serviceItem ServiceItem @relation(fields: [serviceItemId], references: [id])
+
+  @@index([bookingId])
+  @@index([serviceItemId])
+  @@map("booking_items")
+}
+
+/**
+ * B02: ghi cả khi trạng thái không đổi (đổi nhóm, điều chỉnh).
+ */
+model BookingStatusHistory {
+  id         Int            @id @default(autoincrement())
+  bookingId  Int            @map("booking_id")
+  // Null ở bản ghi tạo đơn.
+  fromStatus BookingStatus? @map("from_status")
+  toStatus   BookingStatus  @map("to_status")
+  action     BookingAction
+  // Null khi System thực hiện.
+  changedBy  Int?           @map("changed_by")
+  note       String?        @db.VarChar(500)
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  actor   User?   @relation(fields: [changedBy], references: [id])
+
+  @@index([bookingId])
+  @@map("booking_status_histories")
 }

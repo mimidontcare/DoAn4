@@ -71,6 +71,58 @@ class EnvironmentVariables {
   @Min(1)
   MAX_ADDRESSES_PER_CUSTOMER: number;
 
+  // T01: giờ phục vụ theo múi giờ nghiệp vụ.
+  @IsInt()
+  @Min(0)
+  SERVICE_OPEN_HOUR: number;
+
+  @IsInt()
+  @Min(1)
+  SERVICE_CLOSE_HOUR: number;
+
+  // T01: bước giờ bắt đầu, cũng là bội làm tròn thời lượng.
+  @IsInt()
+  @Min(1)
+  BOOKING_SLOT_STEP_MINUTES: number;
+
+  // T02: đặt trước tối thiểu và tối đa.
+  @IsInt()
+  @Min(0)
+  BOOKING_MIN_LEAD_HOURS: number;
+
+  @IsInt()
+  @Min(1)
+  BOOKING_MAX_ADVANCE_DAYS: number;
+
+  // T03: buffer giữa hai ca của một nhân viên.
+  @IsInt()
+  @Min(0)
+  STAFF_BUFFER_MINUTES: number;
+
+  // Q02: phút công một nhân viên đảm nhận.
+  @IsInt()
+  @Min(1)
+  MAN_MINUTES_PER_STAFF: number;
+
+  // Q03: đặt bằng 1 là phương án an toàn.
+  @IsInt()
+  @Min(1)
+  MAX_STAFF_PER_BOOKING: number;
+
+  // C07: số đơn PENDING tối đa mỗi khách.
+  @IsInt()
+  @Min(1)
+  MAX_PENDING_BOOKINGS_PER_CUSTOMER: number;
+
+  // C01–C03: mốc được hủy và mốc tính hủy muộn.
+  @IsInt()
+  @Min(0)
+  CANCEL_MIN_HOURS_BEFORE_START: number;
+
+  @IsInt()
+  @Min(0)
+  LATE_CANCEL_HOURS: number;
+
   // Thư mục lưu ảnh upload, tương đối với thư mục chạy backend.
   @IsString()
   @IsNotEmpty()
@@ -92,6 +144,17 @@ const DEFAULTS: Record<string, string> = {
   AUTH_THROTTLE_TTL_MS: '60000',
   AUTH_THROTTLE_LIMIT: '5',
   MAX_ADDRESSES_PER_CUSTOMER: '5',
+  SERVICE_OPEN_HOUR: '7',
+  SERVICE_CLOSE_HOUR: '20',
+  BOOKING_SLOT_STEP_MINUTES: '30',
+  BOOKING_MIN_LEAD_HOURS: '3',
+  BOOKING_MAX_ADVANCE_DAYS: '14',
+  STAFF_BUFFER_MINUTES: '30',
+  MAN_MINUTES_PER_STAFF: '240',
+  MAX_STAFF_PER_BOOKING: '4',
+  MAX_PENDING_BOOKINGS_PER_CUSTOMER: '3',
+  CANCEL_MIN_HOURS_BEFORE_START: '2',
+  LATE_CANCEL_HOURS: '12',
   UPLOAD_DIR: 'uploads',
   UPLOAD_MAX_BYTES: '2097152',
 };

@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AreasModule } from './areas/areas.module';
 import { AuthModule } from './auth/auth.module';
+import { BookingsModule } from './bookings/bookings.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -50,6 +51,7 @@ import { UsersModule } from './users/users.module';
     AreasModule,
     StorageModule,
     StaffModule,
+    BookingsModule,
   ],
   providers: [
     // Thứ tự đăng ký là thứ tự chạy: xác thực trước, kiểm tra role sau.

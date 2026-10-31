@@ -38,16 +38,14 @@ describe('Nhân viên (e2e)', () => {
     const province = await prisma.province.create({
       data: { code: 'T1', name: 'Tỉnh A', isActive: true },
     });
-    zoneIds = await Promise.all(
-      ['Khu 1', 'Khu 2', 'Khu 3'].map(
-        async (name) =>
-          (
-            await prisma.serviceZone.create({
-              data: { provinceId: province.id, name },
-            })
-          ).id,
-      ),
-    );
+    // Tạo tuần tự: API trả khu vực theo id tăng dần, test so sánh theo thứ tự này.
+    zoneIds = [];
+    for (const name of ['Khu 1', 'Khu 2', 'Khu 3']) {
+      const zone = await prisma.serviceZone.create({
+        data: { provinceId: province.id, name },
+      });
+      zoneIds.push(zone.id);
+    }
   });
 
   afterAll(async () => {
