@@ -1,9 +1,12 @@
-import { MapPin } from 'lucide-react'
+import { ClipboardList, MapPin } from 'lucide-react'
 import { Outlet } from 'react-router'
 import { AppHeader } from '@/components/common/AppHeader'
 import { AreaNav, type AreaNavItem } from '@/components/common/AreaNav'
 
-const NAV: AreaNavItem[] = [{ to: '/account/addresses', label: 'Địa chỉ', icon: MapPin }]
+const NAV: AreaNavItem[] = [
+  { to: '/account/bookings', label: 'Đơn của tôi', icon: ClipboardList },
+  { to: '/account/addresses', label: 'Địa chỉ', icon: MapPin },
+]
 
 export function CustomerLayout() {
   return (

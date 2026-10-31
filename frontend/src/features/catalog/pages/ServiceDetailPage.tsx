@@ -2,7 +2,10 @@ import { AxiosError } from 'axios'
 import { ArrowLeft } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { ErrorState, LoadingState } from '@/components/common/QueryStatus'
+import { buttonVariants } from '@/components/ui/button'
 import { formatVnd } from '@/lib/format'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth.store'
 import { ServiceImage } from '../components/ServiceImage'
 import { useService } from '../hooks'
 import { UNIT_LABEL } from '../units'
@@ -22,6 +25,9 @@ function BackLink() {
 export function ServiceDetailPage() {
   const { slug = '' } = useParams()
   const { data: service, isPending, isError, error, refetch } = useService(slug)
+  const user = useAuthStore((s) => s.user)
+  // Guest bấm đặt lịch sẽ được chuyển đăng nhập rồi quay lại đúng trang đặt.
+  const canBook = !user || user.role === 'CUSTOMER'
 
   if (isPending) return <LoadingState />
   if (isError) {
@@ -63,6 +69,14 @@ export function ServiceDetailPage() {
                 {formatVnd(service.minCharge)}
               </span>
             </p>
+          )}
+          {canBook && service.items.length > 0 && (
+            <Link
+              to={`/book/${service.slug}`}
+              className={cn(buttonVariants({ variant: 'cta' }), 'h-11 w-fit cursor-pointer px-6')}
+            >
+              Đặt lịch
+            </Link>
           )}
         </div>
       </div>

@@ -16,6 +16,16 @@ export function zonedInputToIso(value: string): string {
   return dayjs.tz(value, APP_TIMEZONE).toISOString()
 }
 
+/** Ngày hiện tại theo APP_TIMEZONE, cộng thêm số ngày: "2026-11-02". */
+export function dateInZone(addDays = 0): string {
+  return dayjs().tz(APP_TIMEZONE).add(addDays, 'day').format('YYYY-MM-DD')
+}
+
+/** ISO UTC → "08:00" theo APP_TIMEZONE. */
+export function formatTime(iso: string): string {
+  return dayjs(iso).tz(APP_TIMEZONE).format('HH:mm')
+}
+
 /** ISO UTC → "02/11/2026 08:00" theo APP_TIMEZONE. */
 export function formatDateTime(iso: string): string {
   return dayjs(iso).tz(APP_TIMEZONE).format('DD/MM/YYYY HH:mm')

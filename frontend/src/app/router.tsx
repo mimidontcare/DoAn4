@@ -10,6 +10,9 @@ import { AdminStaffDetailPage } from '@/features/admin/pages/AdminStaffDetailPag
 import { AdminStaffPage } from '@/features/admin/pages/AdminStaffPage'
 import { ServiceDetailPage } from '@/features/catalog/pages/ServiceDetailPage'
 import { ServicesPage } from '@/features/catalog/pages/ServicesPage'
+import { BookingDetailPage } from '@/features/booking/pages/BookingDetailPage'
+import { BookingWizardPage } from '@/features/booking/pages/BookingWizardPage'
+import { MyBookingsPage } from '@/features/booking/pages/MyBookingsPage'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { CustomerLayout } from '@/layouts/CustomerLayout'
 import { PublicLayout } from '@/layouts/PublicLayout'
@@ -44,9 +47,16 @@ export const router = createBrowserRouter([
         path: '/account',
         element: <CustomerLayout />,
         children: [
-          { index: true, element: <Navigate to="addresses" replace /> },
+          { index: true, element: <Navigate to="bookings" replace /> },
+          { path: 'bookings', element: <MyBookingsPage /> },
+          { path: 'bookings/:id', element: <BookingDetailPage /> },
           { path: 'addresses', element: <AddressesPage /> },
         ],
+      },
+      {
+        path: '/book',
+        element: <CustomerLayout />,
+        children: [{ path: ':slug', element: <BookingWizardPage /> }],
       },
     ],
   },
