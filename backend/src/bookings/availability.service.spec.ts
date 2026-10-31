@@ -27,6 +27,7 @@ function setup() {
     user: { findMany: jest.fn().mockResolvedValue([{ id: 1 }]) },
     staffUnavailability: { findMany: jest.fn().mockResolvedValue([]) },
     booking: { findMany: jest.fn().mockResolvedValue([]) },
+    bookingAssignment: { findMany: jest.fn().mockResolvedValue([]) },
   };
   const service = new AvailabilityService(
     db as unknown as PrismaService,
@@ -126,6 +127,38 @@ describe('AvailabilityService', () => {
       expect(labels).toContain('12:30');
     });
 
+    it('T03, T04: nhân viên đã được giao đơn chồng giờ không còn rảnh', async () => {
+      const { db, service } = setup();
+      db.user.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+      db.bookingAssignment.findMany.mockResolvedValue([
+        {
+          staffId: 1,
+          booking: { startAt: at('10:00'), endAt: at('12:00') },
+        },
+      ]);
+      const labels = (await service.listStartTimes(1, DATE, 2, 60, NOW)).map(
+        label,
+      );
+      expect(labels).toContain('08:30');
+      expect(labels).not.toContain('09:00');
+      expect(labels).not.toContain('12:00');
+      expect(labels).toContain('12:30');
+    });
+
+    it('T04: một nhân viên vừa nghỉ vừa có đơn chỉ tính một lần', async () => {
+      const { db, service } = setup();
+      db.user.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+      db.staffUnavailability.findMany.mockResolvedValue([
+        { staffId: 1, startAt: at('07:00'), endAt: at('20:00') },
+      ]);
+      db.bookingAssignment.findMany.mockResolvedValue([
+        { staffId: 1, booking: { startAt: at('10:00'), endAt: at('12:00') } },
+      ]);
+      expect(
+        (await service.listStartTimes(1, DATE, 1, 60, NOW)).length,
+      ).toBeGreaterThan(0);
+    });
+
     it('T05: trừ đúng staff_count của đơn PENDING', async () => {
       const { db, service } = setup();
       db.user.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
@@ -178,6 +211,7 @@ describe('AvailabilityService', () => {
       user: { findMany: jest.fn().mockResolvedValue([{ id: 1 }]) },
       staffUnavailability: { findMany: jest.fn().mockResolvedValue([]) },
       booking: { findMany: jest.fn().mockResolvedValue([]) },
+      bookingAssignment: { findMany: jest.fn().mockResolvedValue([]) },
     };
     await expect(
       service.isSlotAvailable(tx as never, 1, at('09:00'), 2, 60),

@@ -40,6 +40,8 @@ model User {
   paidConfirmedBookings Booking[]              @relation("BookingPaidConfirmedBy")
   cancelledBookings     Booking[]              @relation("BookingCancelledBy")
   bookingHistories      BookingStatusHistory[]
+  assignments           BookingAssignment[]    @relation("AssignmentStaff")
+  assignmentsMade       BookingAssignment[]    @relation("AssignmentAssignedBy")
 
   @@map("users")
 }
@@ -325,6 +327,7 @@ model Booking {
   canceller     User?                  @relation("BookingCancelledBy", fields: [cancelledBy], references: [id])
   items         BookingItem[]
   histories     BookingStatusHistory[]
+  assignments   BookingAssignment[]
 
   @@index([status, startAt])
   @@index([zoneId, startAt])
@@ -351,6 +354,25 @@ model BookingItem {
   @@index([bookingId])
   @@index([serviceItemId])
   @@map("booking_items")
+}
+
+/**
+ * Nhóm nhân viên của booking (Q04: đúng 1 trưởng nhóm khi CONFIRMED).
+ */
+model BookingAssignment {
+  bookingId  Int      @map("booking_id")
+  staffId    Int      @map("staff_id")
+  isLeader   Boolean  @default(false) @map("is_leader")
+  assignedBy Int      @map("assigned_by")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  staff    User    @relation("AssignmentStaff", fields: [staffId], references: [id])
+  assigner User    @relation("AssignmentAssignedBy", fields: [assignedBy], references: [id])
+
+  @@id([bookingId, staffId])
+  @@index([staffId])
+  @@map("booking_assignments")
 }
 
 /**

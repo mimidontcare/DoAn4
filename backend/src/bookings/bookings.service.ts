@@ -20,10 +20,17 @@ import { toZoned } from '../common/utils/time';
 import { PrismaService } from '../prisma/prisma.service';
 import { AvailabilityService } from './availability.service';
 import {
+  ADMIN_BOOKING_DETAIL_SELECT,
+  ADMIN_BOOKING_SUMMARY_SELECT,
+  AdminBookingDetailView,
+  AdminBookingSummaryView,
   BOOKING_DETAIL_SELECT,
   BOOKING_SUMMARY_SELECT,
   BookingDetailView,
   BookingSummaryView,
+  toAdminBookingDetail,
+  toAdminBookingSummary,
+  toBookingDetail,
 } from './booking.select';
 import {
   assessCustomerCancel,
@@ -31,8 +38,10 @@ import {
   recordBookingHistory,
   transitionBooking,
 } from './booking-state';
+import { AdminCancelBookingDto } from './dto/admin-cancel-booking.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { ListAdminBookingsQueryDto } from './dto/list-admin-bookings-query.dto';
 import { ListBookingsQueryDto } from './dto/list-bookings-query.dto';
 import { QuoteBookingDto } from './dto/quote-booking.dto';
 import {
@@ -55,7 +64,7 @@ export interface QuoteResult extends PriceBreakdown {
   availableStartTimes: Date[];
 }
 
-/** C06–C09: báo giá, tạo, xem và hủy booking của khách. */
+/** C06–C09: báo giá, tạo, xem và hủy booking của khách; A06: admin xem và hủy. */
 @Injectable()
 export class BookingsService {
   private readonly tz: string;
@@ -208,10 +217,11 @@ export class BookingsService {
 
   async getOwned(customerId: number, id: number): Promise<BookingDetailView> {
     await this.findOwnedOrThrow(customerId, id);
-    return this.prisma.booking.findUniqueOrThrow({
+    const row = await this.prisma.booking.findUniqueOrThrow({
       where: { id },
       select: BOOKING_DETAIL_SELECT,
     });
+    return toBookingDetail(row);
   }
 
   async cancelOwned(
@@ -245,6 +255,73 @@ export class BookingsService {
       }
     });
     return this.getOwned(customerId, id);
+  }
+
+  async listAll(
+    query: ListAdminBookingsQueryDto,
+  ): Promise<Paginated<AdminBookingSummaryView>> {
+    const where: Prisma.BookingWhereInput = {
+      status: query.status,
+      ...(query.q && { code: { contains: query.q } }),
+    };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.booking.findMany({
+        where,
+        orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        select: ADMIN_BOOKING_SUMMARY_SELECT,
+      }),
+      this.prisma.booking.count({ where }),
+    ]);
+    return {
+      items: rows.map(toAdminBookingSummary),
+      total,
+      page: query.page,
+      pageSize: query.pageSize,
+    };
+  }
+
+  async getForAdmin(id: number): Promise<AdminBookingDetailView> {
+    const row = await this.prisma.booking.findUnique({
+      where: { id },
+      select: ADMIN_BOOKING_DETAIL_SELECT,
+    });
+    if (!row) {
+      throw new NotFoundException('Không tìm thấy đơn');
+    }
+    return toAdminBookingDetail(row);
+  }
+
+  /** Admin hủy PENDING hoặc CONFIRMED; bảng chuyển trạng thái chặn các trạng thái khác. */
+  async cancelByAdmin(
+    adminId: number,
+    id: number,
+    dto: AdminCancelBookingDto,
+  ): Promise<AdminBookingDetailView> {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id },
+      select: { id: true, status: true, version: true },
+    });
+    if (!booking) {
+      throw new NotFoundException('Không tìm thấy đơn');
+    }
+    await this.prisma.$transaction((tx) =>
+      transitionBooking(tx, {
+        booking,
+        to: BookingStatus.CANCELLED,
+        action: BookingAction.CANCEL,
+        changedBy: adminId,
+        note: dto.note,
+        data: {
+          cancelReason: dto.reason,
+          cancelNote: dto.note,
+          cancelledBy: adminId,
+          cancelledAt: new Date(),
+        },
+      }),
+    );
+    return this.getForAdmin(id);
   }
 
   /** Kiểm tra chung của báo giá và tạo đơn; giá tính lại từ bảng giá hiện tại (P01). */

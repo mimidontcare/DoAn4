@@ -32,6 +32,8 @@ describe('StaffService', () => {
       create: jest.Mock;
       deleteMany: jest.Mock;
     };
+    bookingAssignment: { findMany: jest.Mock };
+    $queryRaw: jest.Mock;
     $transaction: jest.Mock;
   };
 
@@ -51,7 +53,12 @@ describe('StaffService', () => {
         create: jest.fn().mockResolvedValue({}),
         deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
-      $transaction: jest.fn((ops: Promise<unknown>[]) => Promise.all(ops)),
+      bookingAssignment: { findMany: jest.fn().mockResolvedValue([]) },
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      $transaction: jest.fn(
+        (arg: Promise<unknown>[] | ((tx: unknown) => Promise<unknown>)) =>
+          typeof arg === 'function' ? arg(prisma) : Promise.all(arg),
+      ),
     };
     const config = { getOrThrow: () => 4 } as unknown as ConfigService;
     service = new StaffService(prisma as unknown as PrismaService, config);

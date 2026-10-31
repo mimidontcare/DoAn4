@@ -8,6 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { mapUniqueViolation } from '../auth/auth.service';
+import {
+  findBusyStaffIds,
+  lockStaffRows,
+  STAFF_LOCK_TX_OPTIONS,
+} from '../bookings/staff-schedule';
 import type { Paginated } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
@@ -145,8 +150,9 @@ export class StaffService {
   }
 
   /**
-   * A04: lịch nghỉ của nhân viên; không chồng lên lịch nghỉ khác của chính người đó.
-   * TODO Phase 5: không trùng booking đã giao cho nhân viên (cần booking_assignments).
+   * A04: lịch nghỉ của nhân viên; không chồng lên lịch nghỉ khác của chính người đó
+   * và không trùng booking đã giao. Khóa dòng nhân viên trước khi kiểm tra để không
+   * lọt qua khi đang có phân công đồng thời.
    */
   async createUnavailability(
     staffId: number,
@@ -158,24 +164,32 @@ export class StaffService {
     const endAt = new Date(dto.endAt);
     assertValidRange(startAt, endAt);
 
-    const overlap = await this.prisma.staffUnavailability.findFirst({
-      where: { staffId, startAt: { lt: endAt }, endAt: { gt: startAt } },
-      select: { id: true },
-    });
-    if (overlap) {
-      throw new ConflictException('Trùng với một lịch nghỉ đã có');
-    }
+    return this.prisma.$transaction(async (tx) => {
+      await lockStaffRows(tx, [staffId]);
 
-    return this.prisma.staffUnavailability.create({
-      data: {
-        staffId,
-        startAt,
-        endAt,
-        reason: dto.reason || null,
-        createdBy: adminId,
-      },
-      select: UNAVAILABILITY_SELECT,
-    });
+      const overlap = await tx.staffUnavailability.findFirst({
+        where: { staffId, startAt: { lt: endAt }, endAt: { gt: startAt } },
+        select: { id: true },
+      });
+      if (overlap) {
+        throw new ConflictException('Trùng với một lịch nghỉ đã có');
+      }
+      const busy = await findBusyStaffIds(tx, [staffId], startAt, endAt);
+      if (busy.size > 0) {
+        throw new ConflictException('Trùng với đơn đã giao cho nhân viên');
+      }
+
+      return tx.staffUnavailability.create({
+        data: {
+          staffId,
+          startAt,
+          endAt,
+          reason: dto.reason || null,
+          createdBy: adminId,
+        },
+        select: UNAVAILABILITY_SELECT,
+      });
+    }, STAFF_LOCK_TX_OPTIONS);
   }
 
   async deleteUnavailability(staffId: number, id: number): Promise<void> {

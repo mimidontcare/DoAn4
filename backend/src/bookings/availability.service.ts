@@ -4,6 +4,7 @@ import { BookingStatus, Prisma, UserRole, UserStatus } from '@prisma/client';
 import dayjs from 'dayjs';
 import { toZoned } from '../common/utils/time';
 import { PrismaService } from '../prisma/prisma.service';
+import { BUSY_STATUSES } from './staff-schedule';
 
 const MS_PER_MINUTE = 60_000;
 const MINUTES_PER_HOUR = 60;
@@ -17,6 +18,7 @@ interface ZoneLoad {
   staffIds: number[];
   unavailabilities: (Interval & { staffId: number })[];
   pendingBookings: (Interval & { staffCount: number })[];
+  assignedBookings: (Interval & { staffId: number })[];
 }
 
 type Db = Prisma.TransactionClient;
@@ -24,9 +26,6 @@ type Db = Prisma.TransactionClient;
 /**
  * T01–T05, T07: giờ bắt đầu hợp lệ và còn đủ nhân viên rảnh trong khu vực.
  * Đây là kiểm tra mềm; bảo đảm cứng nằm ở bước phân công (T06).
- *
- * TODO Phase 5: loại nhân viên đã được giao booking chồng giờ (cần booking_assignments),
- * và chỉ trừ phần còn thiếu người của booking PENDING.
  */
 @Injectable()
 export class AvailabilityService {
@@ -185,23 +184,42 @@ export class AvailabilityService {
       },
       select: { startAt: true, endAt: true, staffCount: true },
     });
-    return { staffIds, unavailabilities, pendingBookings };
+    const assignments = await db.bookingAssignment.findMany({
+      where: {
+        staffId: { in: staffIds },
+        booking: {
+          status: { in: BUSY_STATUSES },
+          startAt: { lt: new Date(to.getTime() + this.bufferMs) },
+          endAt: { gt: new Date(from.getTime() - this.bufferMs) },
+        },
+      },
+      select: {
+        staffId: true,
+        booking: { select: { startAt: true, endAt: true } },
+      },
+    });
+    const assignedBookings = assignments.map((a) => ({
+      staffId: a.staffId,
+      ...a.booking,
+    }));
+    return { staffIds, unavailabilities, pendingBookings, assignedBookings };
   }
 
-  /** T04, T05: nhân viên không nghỉ, trừ số người các đơn PENDING chồng giờ (tính buffer). */
+  /** T04, T05: nhân viên không nghỉ, không vướng đơn đã giao, trừ số người các đơn PENDING chồng giờ (tính buffer). */
   private freeStaffCount(load: ZoneLoad, start: Date, end: Date): number {
-    const onLeave = new Set(
-      load.unavailabilities
+    const overlapsWithBuffer = (b: Interval) =>
+      b.startAt.getTime() < end.getTime() + this.bufferMs &&
+      b.endAt.getTime() + this.bufferMs > start.getTime();
+
+    const unavailable = new Set([
+      ...load.unavailabilities
         .filter((u) => u.startAt < end && u.endAt > start)
         .map((u) => u.staffId),
-    );
+      ...load.assignedBookings.filter(overlapsWithBuffer).map((b) => b.staffId),
+    ]);
     const reserved = load.pendingBookings
-      .filter(
-        (b) =>
-          b.startAt.getTime() < end.getTime() + this.bufferMs &&
-          b.endAt.getTime() + this.bufferMs > start.getTime(),
-      )
+      .filter(overlapsWithBuffer)
       .reduce((sum, b) => sum + b.staffCount, 0);
-    return load.staffIds.length - onLeave.size - reserved;
+    return load.staffIds.length - unavailable.size - reserved;
   }
 }

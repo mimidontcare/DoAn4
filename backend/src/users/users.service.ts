@@ -4,8 +4,13 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { UserRole, UserStatus } from '@prisma/client';
+import { Prisma, UserRole, UserStatus } from '@prisma/client';
 import { mapUniqueViolation } from '../auth/auth.service';
+import {
+  BUSY_STATUSES,
+  lockStaffRows,
+  STAFF_LOCK_TX_OPTIONS,
+} from '../bookings/staff-schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { PUBLIC_USER_SELECT, PublicUser } from './user.select';
@@ -44,7 +49,8 @@ export class UsersService {
    * Khóa / mở khóa nhân viên hoặc khách (U02: không xóa cứng, chỉ khóa).
    * Khóa thì thu hồi mọi refresh token; access token còn hạn cũng bị chặn ngay
    * vì JwtStrategy đọc lại trạng thái từ DB ở mỗi request.
-   * TODO Phase 5 (U03): không khóa nhân viên còn booking tương lai chưa được thay người.
+   * U03: không khóa nhân viên còn booking chưa kết thúc; khóa dòng nhân viên trước
+   * khi kiểm tra để không lọt qua khi đang có phân công đồng thời.
    */
   async setStatus(userId: number, status: UserStatus): Promise<PublicUser> {
     const user = await this.prisma.user.findUnique({
@@ -60,21 +66,41 @@ export class UsersService {
       );
     }
 
-    const [updated] = await this.prisma.$transaction([
-      this.prisma.user.update({
+    return this.prisma.$transaction(async (tx) => {
+      if (status === UserStatus.LOCKED) {
+        await lockStaffRows(tx, [userId]);
+        await this.assertNoActiveAssignments(tx, userId);
+        await tx.refreshToken.updateMany({
+          where: { userId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+      }
+      return tx.user.update({
         where: { id: userId },
         data: { status },
         select: PUBLIC_USER_SELECT,
-      }),
-      ...(status === UserStatus.LOCKED
-        ? [
-            this.prisma.refreshToken.updateMany({
-              where: { userId, revokedAt: null },
-              data: { revokedAt: new Date() },
-            }),
-          ]
-        : []),
-    ]);
-    return updated;
+      });
+    }, STAFF_LOCK_TX_OPTIONS);
+  }
+
+  private async assertNoActiveAssignments(
+    tx: Prisma.TransactionClient,
+    staffId: number,
+  ): Promise<void> {
+    const assignment = await tx.bookingAssignment.findFirst({
+      where: {
+        staffId,
+        booking: {
+          status: { in: BUSY_STATUSES },
+          endAt: { gt: new Date() },
+        },
+      },
+      select: { booking: { select: { code: true } } },
+    });
+    if (assignment) {
+      throw new UnprocessableEntityException(
+        `Nhân viên còn đơn ${assignment.booking.code} chưa kết thúc, hãy thay người trước khi khóa`,
+      );
+    }
   }
 }
