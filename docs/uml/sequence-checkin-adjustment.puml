@@ -1,0 +1,75 @@
+@startuml sequence-checkin-adjustment
+' Sequence: trưởng nhóm check-in, đề xuất điều chỉnh khối lượng, khách xác nhận, hoàn thành, thu tiền
+' (S03–S06, C10, A01–A05, B03). Nguồn: Master Plan v2 mục 3.1, 3.2, 4 (A, B), 12.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam SequenceLifeLineBorderColor #1E40AF
+skinparam ArrowColor #1E3A8A
+skinparam ParticipantBorderColor #1E40AF
+skinparam ParticipantBackgroundColor #FFFFFF
+
+actor "Trưởng nhóm" as L
+actor "Khách hàng" as C
+participant "StaffBookings\nService" as SS
+participant "Adjustment\nService" as AS
+participant "booking-state" as ST
+database "MySQL" as DB
+
+== Check-in (S03) ==
+L -> SS: PATCH /staff/bookings/:id/check-in
+SS -> DB: Đọc đơn + vai trò của nhân viên trong đơn
+alt Không thuộc đơn hoặc không phải trưởng nhóm
+  SS --> L: 403
+end
+SS -> ST: assertCheckInWindow (30 phút trước – 60 phút sau)
+alt Ngoài cửa sổ
+  ST --> L: 422
+end
+SS -> ST: transitionBooking(CONFIRMED → IN_PROGRESS, CHECK_IN)
+ST -> DB: UPDATE ... WHERE status, version + ghi lịch sử
+alt Đơn vừa bị hủy hoặc đổi (version lệch)
+  ST --> L: 409
+end
+SS --> L: Chi tiết đơn (IN_PROGRESS)
+
+== Đề xuất điều chỉnh (A01–A05) ==
+L -> SS: POST /staff/bookings/:id/adjustment\nitems[{serviceItemId, proposedQuantity}]
+SS -> AS: propose(...)
+alt Không IN_PROGRESS (A01) hoặc đã có đề xuất chờ (A05)
+  AS --> L: 422
+end
+AS -> DB: Dòng đã đặt + hạng mục catalog của dịch vụ
+AS -> AS: buildProposal: chỉ hạng mục của dịch vụ (A02),\nmin/max, bắt buộc (Q01),\nphút công ≤ phút công lúc đặt × 130% (A04)
+alt Vi phạm
+  AS --> L: 422 (vượt 30%: chỉ làm khối lượng đã đặt)
+end
+AS -> DB: adjustment_status = PENDING (kèm version) + lịch sử ADJUST
+AS -> DB: Ghi proposed_quantity; hạng mục mới thêm với giá hiện tại
+SS --> L: Chi tiết đơn (đề xuất đang chờ)
+
+== Khách xác nhận (C10, A03) ==
+C -> AS: PATCH /bookings/:id/adjustment {accept}
+note right of AS: Admin xác nhận thay qua\nPATCH /admin/bookings/:id/adjustment,\nlịch sử ghi người xác nhận
+alt accept = true
+  AS -> AS: totalsOf(khối lượng đề xuất, min_charge snapshot)
+  AS -> DB: Cập nhật giá, phút công, ACCEPTED (kèm version) + lịch sử
+  AS -> DB: Áp khối lượng mới, xóa dòng về 0
+else accept = false
+  AS -> DB: REJECTED (kèm version) + lịch sử
+  AS -> DB: Xóa đề xuất, giữ khối lượng đã đặt
+end
+AS --> C: Chi tiết đơn
+
+== Hoàn thành và thu tiền (S05, S06, B03) ==
+L -> SS: PATCH …/complete
+alt Còn đề xuất đang chờ
+  SS --> L: 422
+end
+SS -> ST: transitionBooking(IN_PROGRESS → COMPLETED, COMPLETE)
+L -> SS: PATCH …/confirm-payment {method}
+SS -> ST: recordPayment: chỉ khi COMPLETED, UNPAID → PAID
+ST -> DB: UPDATE ... WHERE payment_status = UNPAID, version + lịch sử PAYMENT
+SS --> L: Chi tiết đơn (COMPLETED, PAID)
+@enduml
