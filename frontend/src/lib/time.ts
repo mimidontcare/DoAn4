@@ -21,6 +21,24 @@ export function dateInZone(addDays = 0): string {
   return dayjs().tz(APP_TIMEZONE).add(addDays, 'day').format('YYYY-MM-DD')
 }
 
+const WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
+
+/** ISO UTC → "Thứ hai, 02/11/2026" theo APP_TIMEZONE. */
+export function formatWeekday(iso: string): string {
+  const day = dayjs(iso).tz(APP_TIMEZONE)
+  return `${WEEKDAYS[day.day()]}, ${day.format('DD/MM/YYYY')}`
+}
+
+/** ISO UTC → "02/11/2026" theo APP_TIMEZONE. */
+export function formatDate(iso: string): string {
+  return dayjs(iso).tz(APP_TIMEZONE).format('DD/MM/YYYY')
+}
+
+/** Ngày "2026-11-02" (đã theo APP_TIMEZONE) → "02/11/2026". */
+export function formatDay(date: string): string {
+  return dayjs(date).format('DD/MM/YYYY')
+}
+
 /** ISO UTC → "08:00" theo APP_TIMEZONE. */
 export function formatTime(iso: string): string {
   return dayjs(iso).tz(APP_TIMEZONE).format('HH:mm')

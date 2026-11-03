@@ -2,6 +2,26 @@ import type { PricingUnit } from '@/features/catalog/types'
 
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 export type PaymentStatus = 'UNPAID' | 'PAID'
+export type PaymentMethod = 'CASH' | 'BANK_TRANSFER'
+export type AdjustmentStatus = 'NONE' | 'PENDING' | 'ACCEPTED' | 'REJECTED'
+
+/** Đề xuất điều chỉnh đang chờ khách xác nhận; giá do server tính. */
+export interface Proposal {
+  lines: {
+    serviceItemId: number
+    name: string
+    unit: PricingUnit
+    unitPrice: number
+    quantity: number
+    proposedQuantity: number
+    amount: number
+  }[]
+  itemsTotal: number
+  subtotal: number
+  surcharge: number
+  total: number
+  manMinutes: number
+}
 export type BookingAction =
   | 'CREATE'
   | 'ASSIGN'
@@ -87,6 +107,10 @@ export interface BookingDetail extends BookingSummary {
   cancelReason: CancelReason | null
   cancelNote: string | null
   cancelledAt: string | null
+  adjustmentStatus: AdjustmentStatus
+  proposal: Proposal | null
+  paymentMethod: PaymentMethod | null
+  paidAt: string | null
   team: { fullName: string; isLeader: boolean }[]
   items: {
     id: number

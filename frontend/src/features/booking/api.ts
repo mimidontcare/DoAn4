@@ -34,3 +34,10 @@ export async function cancelBooking(id: number, note?: string): Promise<BookingD
   })
   return unwrap(res.data)
 }
+
+export async function respondAdjustment(id: number, accept: boolean): Promise<BookingDetail> {
+  const res = await apiClient.patch<ApiResponse<BookingDetail>>(`/bookings/${id}/adjustment`, {
+    accept,
+  })
+  return unwrap(res.data)
+}

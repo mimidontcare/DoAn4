@@ -1,16 +1,25 @@
 import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/api/client'
 import { ErrorState, LoadingState } from '@/components/common/QueryStatus'
 import { Button } from '@/components/ui/button'
+import { AdjustmentProposal } from '@/features/booking/components/AdjustmentProposal'
 import { BookingStatusBadge } from '@/features/booking/components/BookingStatusBadge'
-import { ACTION_LABEL, CANCEL_REASON_LABEL, PAYMENT_LABEL } from '@/features/booking/labels'
+import { ConfirmPaymentDialog } from '@/features/booking/components/ConfirmPaymentDialog'
+import {
+  ACTION_LABEL,
+  CANCEL_REASON_LABEL,
+  PAYMENT_LABEL,
+  PAYMENT_METHOD_LABEL,
+} from '@/features/booking/labels'
 import { UNIT_LABEL } from '@/features/catalog/units'
 import { formatVnd } from '@/lib/format'
 import { formatDateTime, formatTime } from '@/lib/time'
 import { AdminCancelBookingDialog } from '../components/AdminCancelBookingDialog'
 import { AssignTeamDialog } from '../components/AssignTeamDialog'
-import { useAdminBooking } from '../hooks'
+import { useAdminBooking, useConfirmAdminPayment, useRespondAdminAdjustment } from '../hooks'
 
 function BackLink() {
   return (
@@ -29,6 +38,16 @@ export function AdminBookingDetailPage() {
   const { data: booking, isPending, isError, error, refetch } = useAdminBooking(id)
   const [assigning, setAssigning] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [paying, setPaying] = useState(false)
+  const respond = useRespondAdminAdjustment(id)
+  const payment = useConfirmAdminPayment(id)
+
+  function onRespond(accept: boolean) {
+    respond.mutate(accept, {
+      onSuccess: () => toast.success(accept ? 'Đã chấp nhận thay khách' : 'Đã từ chối thay khách'),
+      onError: (e) => toast.error(getApiErrorMessage(e)),
+    })
+  }
 
   if (!Number.isInteger(id) || id <= 0) {
     return <p className="py-8 text-center text-muted-foreground">Không tìm thấy đơn.</p>
@@ -56,10 +75,16 @@ export function AdminBookingDetailPage() {
             <BookingStatusBadge status={booking.status} />
             <span className="text-sm text-muted-foreground">
               {PAYMENT_LABEL[booking.paymentStatus]}
+              {booking.paymentMethod && ` · ${PAYMENT_METHOD_LABEL[booking.paymentMethod]}`}
             </span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          {booking.status === 'COMPLETED' && booking.paymentStatus === 'UNPAID' && (
+            <Button className="h-11 cursor-pointer" onClick={() => setPaying(true)}>
+              Xác nhận thu tiền thay
+            </Button>
+          )}
           {isOpen && (
             <Button className="h-11 cursor-pointer" onClick={() => setAssigning(true)}>
               {booking.status === 'PENDING' ? 'Phân công' : 'Thay nhóm'}
@@ -76,6 +101,32 @@ export function AdminBookingDetailPage() {
           )}
         </div>
       </div>
+
+      {booking.proposal && (
+        <AdjustmentProposal
+          proposal={booking.proposal}
+          currentTotal={booking.totalPrice}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                className="h-11 cursor-pointer"
+                disabled={respond.isPending}
+                onClick={() => onRespond(false)}
+              >
+                Khách từ chối
+              </Button>
+              <Button
+                className="h-11 cursor-pointer"
+                disabled={respond.isPending}
+                onClick={() => onRespond(true)}
+              >
+                Khách đồng ý (xác nhận thay)
+              </Button>
+            </>
+          }
+        />
+      )}
 
       {booking.status === 'CANCELLED' && booking.cancelReason && (
         <p className="rounded-xl border border-destructive bg-card p-4">
@@ -176,6 +227,22 @@ export function AdminBookingDetailPage() {
       </section>
 
       <AssignTeamDialog booking={booking} open={assigning} onOpenChange={setAssigning} />
+      <ConfirmPaymentDialog
+        code={booking.code}
+        total={booking.totalPrice}
+        open={paying}
+        pending={payment.isPending}
+        onOpenChange={setPaying}
+        onConfirm={(method) =>
+          payment.mutate(method, {
+            onSuccess: () => {
+              toast.success('Đã xác nhận thu tiền')
+              setPaying(false)
+            },
+            onError: (e) => toast.error(getApiErrorMessage(e)),
+          })
+        }
+      />
       <AdminCancelBookingDialog
         bookingId={booking.id}
         code={booking.code}

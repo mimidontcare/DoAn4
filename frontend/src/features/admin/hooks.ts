@@ -7,6 +7,7 @@ import {
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/client'
 import { catalogKeys } from '@/features/catalog/hooks'
+import type { PaymentMethod } from '@/features/booking/types'
 import * as api from './api'
 import type {
   AdminBookingFilters,
@@ -75,6 +76,22 @@ export function useCancelAdminBooking(id: number) {
   const invalidate = useInvalidateBookings()
   return useMutation({
     mutationFn: (input: AdminCancelInput) => api.cancelAdminBooking(id, input),
+    onSettled: invalidate,
+  })
+}
+
+export function useRespondAdminAdjustment(id: number) {
+  const invalidate = useInvalidateBookings()
+  return useMutation({
+    mutationFn: (accept: boolean) => api.respondAdminAdjustment(id, accept),
+    onSettled: invalidate,
+  })
+}
+
+export function useConfirmAdminPayment(id: number) {
+  const invalidate = useInvalidateBookings()
+  return useMutation({
+    mutationFn: (method: PaymentMethod) => api.confirmAdminPayment(id, method),
     onSettled: invalidate,
   })
 }

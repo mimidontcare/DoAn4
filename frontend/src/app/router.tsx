@@ -11,6 +11,8 @@ import { AdminServicesPage } from '@/features/admin/pages/AdminServicesPage'
 import { AdminStaffDetailPage } from '@/features/admin/pages/AdminStaffDetailPage'
 import { AdminStaffPage } from '@/features/admin/pages/AdminStaffPage'
 import { ServiceDetailPage } from '@/features/catalog/pages/ServiceDetailPage'
+import { StaffBookingDetailPage } from '@/features/staff/pages/StaffBookingDetailPage'
+import { StaffSchedulePage } from '@/features/staff/pages/StaffSchedulePage'
 import { ServicesPage } from '@/features/catalog/pages/ServicesPage'
 import { BookingDetailPage } from '@/features/booking/pages/BookingDetailPage'
 import { BookingWizardPage } from '@/features/booking/pages/BookingWizardPage'
@@ -21,7 +23,6 @@ import { PublicLayout } from '@/layouts/PublicLayout'
 import { StaffLayout } from '@/layouts/StaffLayout'
 import { GuestOnly, RequireAuth } from './guards'
 
-// Khu vực nhân viên còn là placeholder, được thay ở các phase sau.
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -68,7 +69,10 @@ export const router = createBrowserRouter([
       {
         path: '/staff',
         element: <StaffLayout />,
-        children: [{ index: true, element: <p>Khu vực nhân viên</p> }],
+        children: [
+          { index: true, element: <StaffSchedulePage /> },
+          { path: 'bookings/:id', element: <StaffBookingDetailPage /> },
+        ],
       },
     ],
   },

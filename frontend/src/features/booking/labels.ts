@@ -1,4 +1,10 @@
-import type { BookingAction, BookingStatus, CancelReason, PaymentStatus } from './types'
+import type {
+  BookingAction,
+  BookingStatus,
+  CancelReason,
+  PaymentMethod,
+  PaymentStatus,
+} from './types'
 
 export const STATUS_LABEL: Record<BookingStatus, string> = {
   PENDING: 'Chờ phân công',
@@ -11,6 +17,11 @@ export const STATUS_LABEL: Record<BookingStatus, string> = {
 export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
   UNPAID: 'Chưa thanh toán',
   PAID: 'Đã thanh toán',
+}
+
+export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
+  CASH: 'Tiền mặt',
+  BANK_TRANSFER: 'Chuyển khoản',
 }
 
 export const ACTION_LABEL: Record<BookingAction, string> = {

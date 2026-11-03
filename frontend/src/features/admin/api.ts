@@ -1,4 +1,5 @@
 import { apiClient, unwrap, type ApiResponse } from '@/api/client'
+import type { PaymentMethod } from '@/features/booking/types'
 import type {
   AdminBookingDetail,
   AdminBookingFilters,
@@ -60,6 +61,28 @@ export async function cancelAdminBooking(
   const res = await apiClient.patch<ApiResponse<AdminBookingDetail>>(
     `/admin/bookings/${id}/cancel`,
     input,
+  )
+  return unwrap(res.data)
+}
+
+export async function respondAdminAdjustment(
+  id: number,
+  accept: boolean,
+): Promise<AdminBookingDetail> {
+  const res = await apiClient.patch<ApiResponse<AdminBookingDetail>>(
+    `/admin/bookings/${id}/adjustment`,
+    { accept },
+  )
+  return unwrap(res.data)
+}
+
+export async function confirmAdminPayment(
+  id: number,
+  method: PaymentMethod,
+): Promise<AdminBookingDetail> {
+  const res = await apiClient.patch<ApiResponse<AdminBookingDetail>>(
+    `/admin/bookings/${id}/confirm-payment`,
+    { method },
   )
   return unwrap(res.data)
 }

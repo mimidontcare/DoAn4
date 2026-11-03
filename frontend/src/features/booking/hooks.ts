@@ -50,3 +50,11 @@ export function useCancelBooking(id: number) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
   })
 }
+
+export function useRespondAdjustment(id: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (accept: boolean) => api.respondAdjustment(id, accept),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
+  })
+}

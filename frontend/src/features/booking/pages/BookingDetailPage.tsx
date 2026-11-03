@@ -1,15 +1,18 @@
 import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/api/client'
 import { ErrorState, LoadingState } from '@/components/common/QueryStatus'
 import { Button } from '@/components/ui/button'
 import { UNIT_LABEL } from '@/features/catalog/units'
 import { formatVnd } from '@/lib/format'
 import { formatDateTime, formatTime } from '@/lib/time'
+import { AdjustmentProposal } from '../components/AdjustmentProposal'
 import { BookingStatusBadge } from '../components/BookingStatusBadge'
 import { CancelBookingDialog } from '../components/CancelBookingDialog'
-import { useBooking } from '../hooks'
-import { ACTION_LABEL, CANCEL_REASON_LABEL, PAYMENT_LABEL } from '../labels'
+import { useBooking, useRespondAdjustment } from '../hooks'
+import { ACTION_LABEL, CANCEL_REASON_LABEL, PAYMENT_LABEL, PAYMENT_METHOD_LABEL } from '../labels'
 
 function BackLink() {
   return (
@@ -27,6 +30,15 @@ export function BookingDetailPage() {
   const id = Number(useParams().id)
   const { data: booking, isPending, isError, error, refetch } = useBooking(id)
   const [cancelling, setCancelling] = useState(false)
+  const respond = useRespondAdjustment(id)
+
+  function onRespond(accept: boolean) {
+    respond.mutate(accept, {
+      onSuccess: () =>
+        toast.success(accept ? 'Đã chấp nhận điều chỉnh' : 'Đã giữ khối lượng đã đặt'),
+      onError: (e) => toast.error(getApiErrorMessage(e)),
+    })
+  }
 
   if (!Number.isInteger(id) || id <= 0) {
     return <p className="py-8 text-center text-muted-foreground">Không tìm thấy đơn.</p>
@@ -54,6 +66,7 @@ export function BookingDetailPage() {
             <BookingStatusBadge status={booking.status} />
             <span className="text-sm text-muted-foreground">
               {PAYMENT_LABEL[booking.paymentStatus]}
+              {booking.paymentMethod && ` · ${PAYMENT_METHOD_LABEL[booking.paymentMethod]}`}
             </span>
           </div>
         </div>
@@ -67,6 +80,32 @@ export function BookingDetailPage() {
           </Button>
         )}
       </div>
+
+      {booking.proposal && (
+        <AdjustmentProposal
+          proposal={booking.proposal}
+          currentTotal={booking.totalPrice}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                className="h-11 cursor-pointer"
+                disabled={respond.isPending}
+                onClick={() => onRespond(false)}
+              >
+                Giữ khối lượng đã đặt
+              </Button>
+              <Button
+                className="h-11 cursor-pointer"
+                disabled={respond.isPending}
+                onClick={() => onRespond(true)}
+              >
+                Chấp nhận điều chỉnh
+              </Button>
+            </>
+          }
+        />
+      )}
 
       {booking.status === 'CANCELLED' && booking.cancelReason && (
         <p className="rounded-xl border border-destructive bg-card p-4">

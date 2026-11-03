@@ -33,3 +33,6 @@ const note = z.string().trim().max(500, 'Ghi chú tối đa 500 ký tự')
 
 export const noteSchema = z.object({ note })
 export type NoteValues = z.infer<typeof noteSchema>
+
+export const paymentSchema = z.object({ method: z.enum(['CASH', 'BANK_TRANSFER']) })
+export type PaymentValues = z.infer<typeof paymentSchema>
