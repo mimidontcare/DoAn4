@@ -14,6 +14,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { Paginated } from '../common/dto/pagination.dto';
 import type { PublicUser } from '../users/user.select';
+import { AdjustmentService } from './adjustment.service';
 import { AssignmentService } from './assignment.service';
 import type { AvailableStaffView } from './assignment.service';
 import type {
@@ -23,7 +24,9 @@ import type {
 import { BookingsService } from './bookings.service';
 import { AdminCancelBookingDto } from './dto/admin-cancel-booking.dto';
 import { AssignTeamDto } from './dto/assign-team.dto';
+import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { ListAdminBookingsQueryDto } from './dto/list-admin-bookings-query.dto';
+import { RespondAdjustmentDto } from './dto/respond-adjustment.dto';
 
 @ApiTags('admin / bookings')
 @ApiBearerAuth()
@@ -33,6 +36,7 @@ export class AdminBookingsController {
   constructor(
     private readonly bookings: BookingsService,
     private readonly assignment: AssignmentService,
+    private readonly adjustment: AdjustmentService,
   ) {}
 
   @Get()
@@ -77,5 +81,27 @@ export class AdminBookingsController {
     @Body() dto: AdminCancelBookingDto,
   ): Promise<AdminBookingDetailView> {
     return this.bookings.cancelByAdmin(user.id, id, dto);
+  }
+
+  @Patch(':id/adjustment')
+  @ApiOperation({
+    summary: 'Xác nhận điều chỉnh thay khách (A03), ghi nhận người xác nhận',
+  })
+  respondAdjustment(
+    @CurrentUser() user: PublicUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RespondAdjustmentDto,
+  ): Promise<AdminBookingDetailView> {
+    return this.adjustment.respondAsAdmin(user.id, id, dto.accept);
+  }
+
+  @Patch(':id/confirm-payment')
+  @ApiOperation({ summary: 'Xác nhận đã thu tiền thay trưởng nhóm (B03)' })
+  confirmPayment(
+    @CurrentUser() user: PublicUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ConfirmPaymentDto,
+  ): Promise<AdminBookingDetailView> {
+    return this.bookings.confirmPaymentByAdmin(user.id, id, dto);
   }
 }

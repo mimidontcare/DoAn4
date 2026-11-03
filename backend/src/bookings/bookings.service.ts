@@ -36,10 +36,12 @@ import {
   assessCustomerCancel,
   CancelPolicy,
   recordBookingHistory,
+  recordPayment,
   transitionBooking,
 } from './booking-state';
 import { AdminCancelBookingDto } from './dto/admin-cancel-booking.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
+import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ListAdminBookingsQueryDto } from './dto/list-admin-bookings-query.dto';
 import { ListBookingsQueryDto } from './dto/list-bookings-query.dto';
@@ -166,6 +168,8 @@ export class BookingsService {
           startAt,
           endAt: this.availability.endOf(startAt, price.durationMinutes),
           manMinutes: price.manMinutes,
+          originalManMinutes: price.manMinutes,
+          minCharge: service.minCharge,
           staffCount: price.staffCount,
           durationMinutes: price.durationMinutes,
           itemsTotal: price.itemsTotal,
@@ -324,6 +328,30 @@ export class BookingsService {
     return this.getForAdmin(id);
   }
 
+  /** A06: admin xác nhận thu tiền thay trưởng nhóm. */
+  async confirmPaymentByAdmin(
+    adminId: number,
+    id: number,
+    dto: ConfirmPaymentDto,
+  ): Promise<AdminBookingDetailView> {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id },
+      select: { id: true, status: true, version: true, paymentStatus: true },
+    });
+    if (!booking) {
+      throw new NotFoundException('Không tìm thấy đơn');
+    }
+    await this.prisma.$transaction((tx) =>
+      recordPayment(tx, {
+        booking,
+        method: dto.method,
+        changedBy: adminId,
+        now: new Date(),
+      }),
+    );
+    return this.getForAdmin(id);
+  }
+
   /** Kiểm tra chung của báo giá và tạo đơn; giá tính lại từ bảng giá hiện tại (P01). */
   private async prepare(
     customerId: number,
@@ -374,7 +402,7 @@ export class BookingsService {
     return { price, zoneId: ward.zone.id, service, address, ward };
   }
 
-  private async findOwnedOrThrow(customerId: number, id: number) {
+  async findOwnedOrThrow(customerId: number, id: number) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       select: {

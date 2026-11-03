@@ -32,6 +32,11 @@ export default () => ({
     ),
     cancelMinHours: Number(process.env.CANCEL_MIN_HOURS_BEFORE_START),
     lateCancelHours: Number(process.env.LATE_CANCEL_HOURS),
+    checkInEarlyMinutes: Number(process.env.CHECKIN_EARLY_MINUTES),
+    checkInLateMinutes: Number(process.env.CHECKIN_LATE_MINUTES),
+    noShowAfterMinutes: Number(process.env.NO_SHOW_AFTER_MINUTES),
+    maxAdjustmentPercent: Number(process.env.MAX_ADJUSTMENT_PERCENT),
+    staffScheduleMaxDays: Number(process.env.STAFF_SCHEDULE_MAX_DAYS),
   },
   upload: {
     dir: process.env.UPLOAD_DIR,

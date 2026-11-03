@@ -1,4 +1,5 @@
-import { Prisma } from '@prisma/client';
+import { AdjustmentStatus, Prisma, PricingUnit } from '@prisma/client';
+import { totalsOf, Totals } from './pricing.service';
 
 export const BOOKING_SUMMARY_SELECT = {
   id: true,
@@ -25,6 +26,10 @@ const BOOKING_CORE_SELECT = {
   contactName: true,
   contactPhone: true,
   manMinutes: true,
+  originalManMinutes: true,
+  minCharge: true,
+  paymentMethod: true,
+  paidAt: true,
   itemsTotal: true,
   subtotal: true,
   surcharge: true,
@@ -41,7 +46,9 @@ const BOOKING_CORE_SELECT = {
       nameSnapshot: true,
       unit: true,
       unitPrice: true,
+      minutesPerUnit: true,
       quantity: true,
+      proposedQuantity: true,
       amount: true,
     },
   },
@@ -76,14 +83,18 @@ type BookingDetailRow = Prisma.BookingGetPayload<{
 }>;
 
 /** Khách chỉ thấy tên và vai trò trong nhóm, không thấy liên hệ của nhân viên. */
-export type BookingDetailView = Omit<BookingDetailRow, 'assignments'> & {
-  team: { fullName: string; isLeader: boolean }[];
-};
+export type BookingDetailView = Omit<
+  BookingDetailRow,
+  'assignments' | 'items'
+> &
+  WithProposal & {
+    team: { fullName: string; isLeader: boolean }[];
+  };
 
 export function toBookingDetail(row: BookingDetailRow): BookingDetailView {
   const { assignments, ...rest } = row;
   return {
-    ...rest,
+    ...withProposal(rest),
     team: assignments.map((a) => ({
       fullName: a.staff.fullName,
       isLeader: a.isLeader,
@@ -134,17 +145,148 @@ type AdminBookingDetailRow = Prisma.BookingGetPayload<{
 
 export type AdminBookingDetailView = Omit<
   AdminBookingDetailRow,
-  'assignments'
-> & {
-  team: { id: number; fullName: string; phone: string; isLeader: boolean }[];
-};
+  'assignments' | 'items'
+> &
+  WithProposal & {
+    team: { id: number; fullName: string; phone: string; isLeader: boolean }[];
+  };
 
 export function toAdminBookingDetail(
   row: AdminBookingDetailRow,
 ): AdminBookingDetailView {
   const { assignments, ...rest } = row;
   return {
-    ...rest,
+    ...withProposal(rest),
     team: assignments.map((a) => ({ ...a.staff, isLeader: a.isLeader })),
+  };
+}
+
+export const STAFF_BOOKING_SUMMARY_SELECT = {
+  ...BOOKING_SUMMARY_SELECT,
+  contactName: true,
+  contactPhone: true,
+  note: true,
+} satisfies Prisma.BookingSelect;
+
+export type StaffBookingSummaryView = Prisma.BookingGetPayload<{
+  select: typeof STAFF_BOOKING_SUMMARY_SELECT;
+}> & { isLeader: boolean };
+
+/** Nhân viên thấy liên hệ của khách và đồng đội trong đơn mình được giao (mục 15). */
+export const STAFF_BOOKING_DETAIL_SELECT = {
+  ...BOOKING_CORE_SELECT,
+  assignments: {
+    orderBy: TEAM_ORDER,
+    select: {
+      isLeader: true,
+      staff: { select: { id: true, fullName: true, phone: true } },
+    },
+  },
+} satisfies Prisma.BookingSelect;
+
+export type StaffBookingDetailRow = Prisma.BookingGetPayload<{
+  select: typeof STAFF_BOOKING_DETAIL_SELECT;
+}>;
+
+export interface AdjustableItem {
+  id: number;
+  name: string;
+  unit: PricingUnit;
+  unitPrice: number;
+  minutesPerUnit: number;
+  minQty: number;
+  maxQty: number;
+  isRequired: boolean;
+}
+
+export type StaffBookingDetailView = Omit<
+  StaffBookingDetailRow,
+  'assignments' | 'items'
+> &
+  WithProposal & {
+    isLeader: boolean;
+    team: { id: number; fullName: string; phone: string; isLeader: boolean }[];
+    /** A04: tổng phút công tối đa của một đề xuất. */
+    maxAdjustedManMinutes: number;
+    /** A02: hạng mục của dịch vụ được dùng khi đề xuất (chỉ trưởng nhóm). */
+    adjustableItems: AdjustableItem[];
+  };
+
+export function toStaffBookingDetail(
+  row: StaffBookingDetailRow,
+  staffId: number,
+  extra: { maxAdjustedManMinutes: number; adjustableItems: AdjustableItem[] },
+): StaffBookingDetailView {
+  const { assignments, ...rest } = row;
+  const team = assignments.map((a) => ({ ...a.staff, isLeader: a.isLeader }));
+  return {
+    ...withProposal(rest),
+    ...extra,
+    team,
+    isLeader: team.some((m) => m.id === staffId && m.isLeader),
+  };
+}
+
+// ---------- Đề xuất điều chỉnh (A01–A05) ----------
+
+type ItemRow = BookingDetailRow['items'][number];
+
+export interface ProposalView extends Totals {
+  lines: {
+    serviceItemId: number;
+    name: string;
+    unit: PricingUnit;
+    unitPrice: number;
+    quantity: number;
+    proposedQuantity: number;
+    amount: number;
+  }[];
+}
+
+interface WithProposal {
+  /** Chỉ các dòng đang có khối lượng; dòng mới thêm khi đề xuất nằm ở proposal. */
+  items: ItemRow[];
+  /** Có khi đề xuất đang chờ khách xác nhận. */
+  proposal: ProposalView | null;
+}
+
+function withProposal<
+  T extends {
+    items: ItemRow[];
+    adjustmentStatus: AdjustmentStatus;
+    minCharge: number;
+  },
+>(row: T): Omit<T, 'items'> & WithProposal {
+  const { items } = row;
+  const pending = row.adjustmentStatus === AdjustmentStatus.PENDING;
+  const lines = pending
+    ? items.map((item) => {
+        const proposedQuantity = item.proposedQuantity ?? item.quantity;
+        return {
+          serviceItemId: item.serviceItemId,
+          name: item.nameSnapshot,
+          unit: item.unit,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+          proposedQuantity,
+          amount: proposedQuantity * item.unitPrice,
+        };
+      })
+    : [];
+  return {
+    ...row,
+    items: items.filter((item) => item.quantity > 0),
+    proposal: pending
+      ? {
+          lines,
+          ...totalsOf(
+            items.map((item) => ({
+              ...item,
+              quantity: item.proposedQuantity ?? item.quantity,
+            })),
+            row.minCharge,
+          ),
+        }
+      : null,
   };
 }

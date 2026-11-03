@@ -123,6 +123,30 @@ class EnvironmentVariables {
   @Min(0)
   LATE_CANCEL_HOURS: number;
 
+  // Phần B: check-in từ trước đến sau giờ bắt đầu bao nhiêu phút.
+  @IsInt()
+  @Min(0)
+  CHECKIN_EARLY_MINUTES: number;
+
+  @IsInt()
+  @Min(0)
+  CHECKIN_LATE_MINUTES: number;
+
+  // S07: báo khách vắng mặt sau giờ bắt đầu bao nhiêu phút.
+  @IsInt()
+  @Min(0)
+  NO_SHOW_AFTER_MINUTES: number;
+
+  // A04: tăng tối đa bao nhiêu % phút công lúc đặt.
+  @IsInt()
+  @Min(0)
+  MAX_ADJUSTMENT_PERCENT: number;
+
+  // S01: khoảng ngày tối đa của một lần xem lịch.
+  @IsInt()
+  @Min(1)
+  STAFF_SCHEDULE_MAX_DAYS: number;
+
   // Thư mục lưu ảnh upload, tương đối với thư mục chạy backend.
   @IsString()
   @IsNotEmpty()
@@ -155,6 +179,11 @@ const DEFAULTS: Record<string, string> = {
   MAX_PENDING_BOOKINGS_PER_CUSTOMER: '3',
   CANCEL_MIN_HOURS_BEFORE_START: '2',
   LATE_CANCEL_HOURS: '12',
+  CHECKIN_EARLY_MINUTES: '30',
+  CHECKIN_LATE_MINUTES: '60',
+  NO_SHOW_AFTER_MINUTES: '30',
+  MAX_ADJUSTMENT_PERCENT: '30',
+  STAFF_SCHEDULE_MAX_DAYS: '31',
   UPLOAD_DIR: 'uploads',
   UPLOAD_MAX_BYTES: '2097152',
 };

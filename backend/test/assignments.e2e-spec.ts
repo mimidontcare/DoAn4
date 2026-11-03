@@ -88,6 +88,8 @@ describe('Phân công nhóm (e2e)', () => {
         startAt: at(start),
         endAt: at(end),
         manMinutes: 240,
+        originalManMinutes: 240,
+        minCharge: 0,
         staffCount,
         durationMinutes: 120,
         itemsTotal: 1_000_000,

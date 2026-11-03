@@ -1,8 +1,22 @@
-import { ConflictException } from '@nestjs/common';
-import { BookingAction, BookingStatus, Prisma } from '@prisma/client';
 import {
+  ConflictException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import {
+  AdjustmentStatus,
+  BookingAction,
+  BookingStatus,
+  PaymentMethod,
+  PaymentStatus,
+  Prisma,
+} from '@prisma/client';
+import {
+  assertCheckInWindow,
+  assertNoPendingAdjustment,
+  assertNoShowAllowed,
   assessCustomerCancel,
   canTransition,
+  recordPayment,
   transitionBooking,
 } from './booking-state';
 
@@ -117,4 +131,127 @@ describe('assessCustomerCancel', () => {
       expect(() => assess(status, 24)).toThrow(/không thể hủy/);
     },
   );
+});
+
+describe('mốc thời gian của nhân viên', () => {
+  const policy = {
+    checkInEarlyMinutes: 30,
+    checkInLateMinutes: 60,
+    noShowAfterMinutes: 30,
+  };
+  const startAt = new Date('2026-11-02T02:00:00.000Z');
+  const minutesAfter = (m: number) => new Date(startAt.getTime() + m * 60_000);
+
+  it('check-in: đúng biên 30 phút trước và 60 phút sau đều được', () => {
+    expect(() =>
+      assertCheckInWindow(startAt, minutesAfter(-30), policy),
+    ).not.toThrow();
+    expect(() =>
+      assertCheckInWindow(startAt, minutesAfter(60), policy),
+    ).not.toThrow();
+  });
+
+  it('check-in: sớm hơn hoặc muộn hơn cửa sổ → 422', () => {
+    expect(() =>
+      assertCheckInWindow(startAt, minutesAfter(-31), policy),
+    ).toThrow(/30 phút trước/);
+    expect(() =>
+      assertCheckInWindow(startAt, minutesAfter(61), policy),
+    ).toThrow(/60 phút sau/);
+  });
+
+  it('S07: báo vắng mặt từ đúng 30 phút sau giờ bắt đầu', () => {
+    expect(() =>
+      assertNoShowAllowed(startAt, minutesAfter(29), policy),
+    ).toThrow(UnprocessableEntityException);
+    expect(() =>
+      assertNoShowAllowed(startAt, minutesAfter(30), policy),
+    ).not.toThrow();
+  });
+
+  it('S05: còn đề xuất đang chờ thì không hoàn thành được', () => {
+    expect(() => assertNoPendingAdjustment(AdjustmentStatus.PENDING)).toThrow(
+      /đang chờ/,
+    );
+    for (const status of [
+      AdjustmentStatus.NONE,
+      AdjustmentStatus.ACCEPTED,
+      AdjustmentStatus.REJECTED,
+    ]) {
+      expect(() => assertNoPendingAdjustment(status)).not.toThrow();
+    }
+  });
+});
+
+describe('recordPayment (B03)', () => {
+  const updateMany = jest.fn();
+  function tx(count = 1) {
+    updateMany.mockReset().mockResolvedValue({ count });
+    return {
+      booking: { updateMany },
+      bookingStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+    } as unknown as Prisma.TransactionClient;
+  }
+  const now = new Date('2026-11-02T05:00:00.000Z');
+  const completed = {
+    id: 1,
+    status: COMPLETED,
+    version: 4,
+    paymentStatus: PaymentStatus.UNPAID,
+  };
+
+  it('UNPAID → PAID kèm phương thức, người xác nhận, điều kiện version', async () => {
+    const client = tx();
+    await recordPayment(client, {
+      booking: completed,
+      method: PaymentMethod.CASH,
+      changedBy: 7,
+      now,
+    });
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        paymentStatus: 'UNPAID',
+        id: 1,
+        status: 'COMPLETED',
+        version: 4,
+      },
+      data: {
+        paymentStatus: 'PAID',
+        paymentMethod: 'CASH',
+        paidAt: now,
+        paidConfirmedBy: 7,
+        version: { increment: 1 },
+      },
+    });
+  });
+
+  it('chưa hoàn thành hoặc đã thanh toán → 422', async () => {
+    await expect(
+      recordPayment(tx(), {
+        booking: { ...completed, status: IN_PROGRESS },
+        method: PaymentMethod.CASH,
+        changedBy: 7,
+        now,
+      }),
+    ).rejects.toThrow(/đã hoàn thành/);
+    await expect(
+      recordPayment(tx(), {
+        booking: { ...completed, paymentStatus: PaymentStatus.PAID },
+        method: PaymentMethod.CASH,
+        changedBy: 7,
+        now,
+      }),
+    ).rejects.toThrow(/đã được thanh toán/);
+  });
+
+  it('thu tiền đồng thời: lần sau không khớp version → 409', async () => {
+    await expect(
+      recordPayment(tx(0), {
+        booking: completed,
+        method: PaymentMethod.BANK_TRANSFER,
+        changedBy: 7,
+        now,
+      }),
+    ).rejects.toThrow(ConflictException);
+  });
 });

@@ -16,19 +16,24 @@ import { Roles } from '../common/decorators/roles.decorator';
 import type { Paginated } from '../common/dto/pagination.dto';
 import type { PublicUser } from '../users/user.select';
 import type { BookingDetailView, BookingSummaryView } from './booking.select';
+import { AdjustmentService } from './adjustment.service';
 import { BookingsService } from './bookings.service';
 import type { QuoteResult } from './bookings.service';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ListBookingsQueryDto } from './dto/list-bookings-query.dto';
 import { QuoteBookingDto } from './dto/quote-booking.dto';
+import { RespondAdjustmentDto } from './dto/respond-adjustment.dto';
 
 @ApiTags('bookings')
 @ApiBearerAuth()
 @Roles(UserRole.CUSTOMER)
 @Controller()
 export class CustomerBookingsController {
-  constructor(private readonly bookings: BookingsService) {}
+  constructor(
+    private readonly bookings: BookingsService,
+    private readonly adjustment: AdjustmentService,
+  ) {}
 
   @Post('bookings/quote')
   @HttpCode(200)
@@ -77,5 +82,15 @@ export class CustomerBookingsController {
     @Body() dto: CancelBookingDto,
   ): Promise<BookingDetailView> {
     return this.bookings.cancelOwned(user.id, id, dto);
+  }
+
+  @Patch('bookings/:id/adjustment')
+  @ApiOperation({ summary: 'Chấp nhận hoặc từ chối đề xuất điều chỉnh (C10)' })
+  respondAdjustment(
+    @CurrentUser() user: PublicUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RespondAdjustmentDto,
+  ): Promise<BookingDetailView> {
+    return this.adjustment.respondAsCustomer(user.id, id, dto.accept);
   }
 }

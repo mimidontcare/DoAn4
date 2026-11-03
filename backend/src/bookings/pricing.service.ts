@@ -46,6 +46,42 @@ export interface PriceBreakdown {
   durationMinutes: number;
 }
 
+export interface CostLine {
+  quantity: number;
+  unitPrice: number;
+  minutesPerUnit: number;
+}
+
+export interface Totals {
+  itemsTotal: number;
+  subtotal: number;
+  surcharge: number;
+  total: number;
+  manMinutes: number;
+}
+
+/** P03, P04: tổng tiền và phút công của các dòng, áp dụng mức tối thiểu. */
+export function totalsOf(lines: CostLine[], minCharge: number): Totals {
+  const itemsTotal = lines.reduce(
+    (sum, line) => sum + line.quantity * line.unitPrice,
+    0,
+  );
+  const subtotal = Math.max(itemsTotal, minCharge);
+  // Phụ phí cuối tuần (P05) là mục tùy chọn, chưa làm.
+  const surcharge = 0;
+  const manMinutes = lines.reduce(
+    (sum, line) => sum + line.quantity * line.minutesPerUnit,
+    0,
+  );
+  return {
+    itemsTotal,
+    subtotal,
+    surcharge,
+    total: roundToThousand(subtotal + surcharge),
+    manMinutes,
+  };
+}
+
 /** P01–P04, Q01–Q03: công thức mục 3.3. Giá luôn tính từ bảng giá hiện tại. */
 @Injectable()
 export class PricingService {
@@ -70,17 +106,8 @@ export class PricingService {
     requested: RequestedItem[],
   ): PriceBreakdown {
     const lines = this.buildLines(service, requested);
-
-    const itemsTotal = lines.reduce((sum, line) => sum + line.amount, 0);
-    const subtotal = Math.max(itemsTotal, service.minCharge);
-    // Phụ phí cuối tuần (P05) là mục tùy chọn, chưa làm.
-    const surcharge = 0;
-    const total = roundToThousand(subtotal + surcharge);
-
-    const manMinutes = lines.reduce(
-      (sum, line) => sum + line.quantity * line.minutesPerUnit,
-      0,
-    );
+    const totals = totalsOf(lines, service.minCharge);
+    const { manMinutes } = totals;
     const staffCount = Math.max(
       1,
       Math.ceil(manMinutes / this.manMinutesPerStaff),
@@ -91,11 +118,7 @@ export class PricingService {
 
     return {
       lines,
-      itemsTotal,
-      subtotal,
-      surcharge,
-      total,
-      manMinutes,
+      ...totals,
       staffCount,
       durationMinutes: this.durationOf(manMinutes, staffCount),
     };
