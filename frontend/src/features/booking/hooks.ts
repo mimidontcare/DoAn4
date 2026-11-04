@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as api from './api'
-import type { BookingListQuery, QuoteInput } from './types'
+import type { BookingListQuery, QuoteInput, RescheduleInput, ReviewInput } from './types'
 
 export const bookingKeys = {
   all: ['bookings'] as const,
@@ -56,5 +56,31 @@ export function useRespondAdjustment(id: number) {
   return useMutation({
     mutationFn: (accept: boolean) => api.respondAdjustment(id, accept),
     onSettled: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
+  })
+}
+
+export function useCreateReview(id: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ReviewInput) => api.createReview(id, input),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
+  })
+}
+
+/** Luôn lấy mới: giờ trống thay đổi theo các đơn khác. */
+export function useRescheduleOptions(id: number, date: string) {
+  return useQuery({
+    queryKey: ['bookings', 'reschedule-options', id, date] as const,
+    queryFn: () => api.fetchRescheduleOptions(id, date),
+    retry: false,
+    gcTime: 0,
+  })
+}
+
+export function useReschedule(id: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RescheduleInput) => api.rescheduleBooking(id, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
   })
 }

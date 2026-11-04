@@ -105,3 +105,9 @@ export const adminCancelSchema = z.object({
   note: z.string().trim().max(500, 'Ghi chú tối đa 500 ký tự'),
 })
 export type AdminCancelValues = z.infer<typeof adminCancelSchema>
+
+export const blockedDateSchema = z.object({
+  date: z.string().min(1, 'Chọn ngày'),
+  reason: z.string().trim().max(255, 'Lý do tối đa 255 ký tự'),
+})
+export type BlockedDateValues = z.infer<typeof blockedDateSchema>

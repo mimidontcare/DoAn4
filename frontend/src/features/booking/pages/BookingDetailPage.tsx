@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/client'
 import { ErrorState, LoadingState } from '@/components/common/QueryStatus'
+import { RatingStars } from '@/components/common/RatingStars'
 import { Button } from '@/components/ui/button'
 import { UNIT_LABEL } from '@/features/catalog/units'
 import { formatVnd } from '@/lib/format'
@@ -11,6 +12,8 @@ import { formatDateTime, formatTime } from '@/lib/time'
 import { AdjustmentProposal } from '../components/AdjustmentProposal'
 import { BookingStatusBadge } from '../components/BookingStatusBadge'
 import { CancelBookingDialog } from '../components/CancelBookingDialog'
+import { RescheduleDialog } from '../components/RescheduleDialog'
+import { ReviewForm } from '../components/ReviewForm'
 import { useBooking, useRespondAdjustment } from '../hooks'
 import { ACTION_LABEL, CANCEL_REASON_LABEL, PAYMENT_LABEL, PAYMENT_METHOD_LABEL } from '../labels'
 
@@ -30,6 +33,7 @@ export function BookingDetailPage() {
   const id = Number(useParams().id)
   const { data: booking, isPending, isError, error, refetch } = useBooking(id)
   const [cancelling, setCancelling] = useState(false)
+  const [rescheduling, setRescheduling] = useState(false)
   const respond = useRespondAdjustment(id)
 
   function onRespond(accept: boolean) {
@@ -71,13 +75,22 @@ export function BookingDetailPage() {
           </div>
         </div>
         {canCancel && (
-          <Button
-            variant="outline"
-            className="h-11 cursor-pointer text-destructive hover:text-destructive"
-            onClick={() => setCancelling(true)}
-          >
-            Hủy đơn
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              className="h-11 cursor-pointer"
+              onClick={() => setRescheduling(true)}
+            >
+              Đổi lịch
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 cursor-pointer text-destructive hover:text-destructive"
+              onClick={() => setCancelling(true)}
+            >
+              Hủy đơn
+            </Button>
+          </div>
         )}
       </div>
 
@@ -150,12 +163,35 @@ export function BookingDetailPage() {
               Áp dụng mức tối thiểu: {formatVnd(booking.subtotal)}
             </p>
           )}
+          {booking.surcharge > 0 && (
+            <p className="flex justify-between gap-4">
+              <span>Phụ phí cuối tuần ({booking.surchargePercent}%)</span>
+              <span className="whitespace-nowrap">{formatVnd(booking.surcharge)}</span>
+            </p>
+          )}
           <p className="flex justify-between border-t pt-2 text-lg font-semibold">
             <span>Tổng cộng</span>
             <span className="text-primary">{formatVnd(booking.totalPrice)}</span>
           </p>
         </section>
       </div>
+
+      {booking.review ? (
+        <section aria-labelledby="my-review-heading" className="grid gap-2 rounded-xl border bg-card p-4">
+          <h2 id="my-review-heading" className="text-lg font-semibold">
+            Đánh giá của bạn
+          </h2>
+          <RatingStars value={booking.review.rating} />
+          {booking.review.comment && (
+            <p className="break-words whitespace-pre-line">{booking.review.comment}</p>
+          )}
+          <p className="text-sm text-muted-foreground">{formatDateTime(booking.review.createdAt)}</p>
+        </section>
+      ) : (
+        booking.reviewDeadline && (
+          <ReviewForm bookingId={booking.id} deadline={booking.reviewDeadline} />
+        )
+      )}
 
       {booking.team.length > 0 && (
         <section aria-labelledby="team-heading" className="grid gap-2 rounded-xl border bg-card p-4">
@@ -196,6 +232,9 @@ export function BookingDetailPage() {
         </ol>
       </section>
 
+      {canCancel && (
+        <RescheduleDialog booking={booking} open={rescheduling} onOpenChange={setRescheduling} />
+      )}
       <CancelBookingDialog
         bookingId={booking.id}
         code={booking.code}

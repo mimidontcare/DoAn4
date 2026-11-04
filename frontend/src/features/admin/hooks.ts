@@ -10,6 +10,7 @@ import { catalogKeys } from '@/features/catalog/hooks'
 import type { PaymentMethod } from '@/features/booking/types'
 import * as api from './api'
 import type {
+  AdminReviewFilters,
   AdminBookingFilters,
   AdminCancelInput,
   AssignTeamInput,
@@ -328,5 +329,54 @@ export function useDeleteUnavailability(staffId: number) {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: staffKeys.unavailabilities(staffId) }),
     onError: toastError,
+  })
+}
+
+// ---------- Tổng quan, đánh giá, ngày không phục vụ ----------
+
+export function useDashboard() {
+  return useQuery({ queryKey: ['admin', 'dashboard'] as const, queryFn: api.fetchDashboard })
+}
+
+export function useAdminReviews(filters: AdminReviewFilters) {
+  return useQuery({
+    queryKey: ['admin', 'reviews', filters] as const,
+    queryFn: () => api.fetchAdminReviews(filters),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useSetReviewHidden() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, hidden }: { id: number; hidden: boolean }) => api.setReviewHidden(id, hidden),
+    // Điểm trên dashboard và trang dịch vụ đổi theo.
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin'] }),
+        queryClient.invalidateQueries({ queryKey: catalogKeys.services }),
+      ]),
+  })
+}
+
+const blockedDatesKey = ['admin', 'blocked-dates'] as const
+
+export function useBlockedDates() {
+  return useQuery({ queryKey: blockedDatesKey, queryFn: api.fetchBlockedDates })
+}
+
+export function useCreateBlockedDate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: api.createBlockedDate,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: blockedDatesKey }),
+  })
+}
+
+export function useDeleteBlockedDate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: api.deleteBlockedDate,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: blockedDatesKey }),
   })
 }

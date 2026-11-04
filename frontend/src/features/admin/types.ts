@@ -3,6 +3,7 @@ import type {
   BookingStatus,
   BookingSummary,
   CancelReason,
+  PaymentStatus,
 } from '@/features/booking/types'
 import type { PricingUnit, WardType } from '@/features/catalog/types'
 
@@ -107,6 +108,8 @@ export interface Staff {
   mustChangePassword: boolean
   createdAt: string
   zones: { id: number; name: string; isActive: boolean; provinceId: number }[]
+  /** V02: chỉ có ở trang chi tiết. */
+  rating?: { average: number | null; count: number }
 }
 
 export interface StaffFilters {
@@ -135,6 +138,9 @@ export interface Unavailability {
 
 export interface AdminBookingFilters {
   status?: BookingStatus
+  paymentStatus?: PaymentStatus
+  /** A06: đã qua giờ bắt đầu mà chưa check-in. */
+  overdueCheckIn?: boolean
   q?: string
   page: number
   pageSize: number
@@ -177,4 +183,41 @@ export interface Paginated<T> {
   total: number
   page: number
   pageSize: number
+}
+
+export interface Dashboard {
+  month: string
+  statusCounts: Record<BookingStatus, number>
+  revenue: { total: number; paidCount: number }
+  rating: { average: number | null; count: number }
+  attention: {
+    unassigned: number
+    overdueCheckIn: number
+    pendingAdjustments: number
+    unpaid: number
+  }
+}
+
+export interface AdminReview {
+  id: number
+  rating: number
+  comment: string | null
+  createdAt: string
+  isHidden: boolean
+  booking: { id: number; code: string; serviceName: string }
+  customer: { id: number; fullName: string }
+}
+
+export interface AdminReviewFilters {
+  hidden?: boolean
+  page: number
+  pageSize: number
+}
+
+export interface BlockedDate {
+  id: number
+  /** "YYYY-MM-DD" theo múi giờ nghiệp vụ. */
+  date: string
+  reason: string | null
+  createdAt: string
 }

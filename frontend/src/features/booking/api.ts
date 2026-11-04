@@ -6,6 +6,9 @@ import type {
   CreateBookingInput,
   Quote,
   QuoteInput,
+  RescheduleInput,
+  RescheduleOptions,
+  ReviewInput,
 } from './types'
 
 export async function fetchQuote(input: QuoteInput): Promise<Quote> {
@@ -39,5 +42,22 @@ export async function respondAdjustment(id: number, accept: boolean): Promise<Bo
   const res = await apiClient.patch<ApiResponse<BookingDetail>>(`/bookings/${id}/adjustment`, {
     accept,
   })
+  return unwrap(res.data)
+}
+
+export async function createReview(id: number, input: ReviewInput): Promise<void> {
+  await apiClient.post(`/bookings/${id}/review`, input)
+}
+
+export async function fetchRescheduleOptions(id: number, date: string): Promise<RescheduleOptions> {
+  const res = await apiClient.get<ApiResponse<RescheduleOptions>>(
+    `/bookings/${id}/reschedule-options`,
+    { params: { date } },
+  )
+  return unwrap(res.data)
+}
+
+export async function rescheduleBooking(id: number, input: RescheduleInput): Promise<BookingDetail> {
+  const res = await apiClient.patch<ApiResponse<BookingDetail>>(`/bookings/${id}/reschedule`, input)
   return unwrap(res.data)
 }

@@ -93,7 +93,13 @@ export function ScheduleStep({ serviceId, addressId, items, onBack }: ScheduleSt
         {quote.data && (
           <fieldset className="grid gap-2">
             <legend className="mb-2 text-sm font-medium">Giờ bắt đầu</legend>
-            {slots.length === 0 ? (
+            {quote.data.blockedDate ? (
+              <p className="text-muted-foreground">
+                Ngày này không phục vụ
+                {quote.data.blockedDate.reason && `: ${quote.data.blockedDate.reason}`}, vui lòng
+                chọn ngày khác.
+              </p>
+            ) : slots.length === 0 ? (
               <p className="text-muted-foreground">
                 Ngày này không còn giờ trống, vui lòng chọn ngày khác.
               </p>
@@ -141,6 +147,12 @@ export function ScheduleStep({ serviceId, addressId, items, onBack }: ScheduleSt
           {quote.data.subtotal > quote.data.itemsTotal && (
             <p className="text-sm text-muted-foreground">
               Áp dụng mức tối thiểu của dịch vụ: {formatVnd(quote.data.subtotal)}
+            </p>
+          )}
+          {quote.data.surcharge > 0 && (
+            <p className="flex justify-between gap-4">
+              <span>Phụ phí cuối tuần ({quote.data.surchargePercent}%)</span>
+              <span className="whitespace-nowrap">{formatVnd(quote.data.surcharge)}</span>
             </p>
           )}
           <p className="flex justify-between border-t pt-2 text-lg font-semibold">

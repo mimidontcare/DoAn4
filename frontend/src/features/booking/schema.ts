@@ -36,3 +36,9 @@ export type NoteValues = z.infer<typeof noteSchema>
 
 export const paymentSchema = z.object({ method: z.enum(['CASH', 'BANK_TRANSFER']) })
 export type PaymentValues = z.infer<typeof paymentSchema>
+
+export const reviewSchema = z.object({
+  rating: z.number().int().min(1, 'Chọn số sao').max(5),
+  comment: z.string().trim().max(1000, 'Nhận xét tối đa 1000 ký tự'),
+})
+export type ReviewValues = z.infer<typeof reviewSchema>

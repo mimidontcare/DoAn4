@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchService, fetchServiceAreas, fetchServices } from './api'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { fetchService, fetchServiceAreas, fetchServiceReviews, fetchServices } from './api'
 
 export const catalogKeys = {
   services: ['services'] as const,
@@ -20,4 +20,12 @@ export function useService(slug: string) {
 
 export function useServiceAreas() {
   return useQuery({ queryKey: catalogKeys.serviceAreas, queryFn: fetchServiceAreas })
+}
+
+export function useServiceReviews(serviceId: number, page: number) {
+  return useQuery({
+    queryKey: ['services', serviceId, 'reviews', page] as const,
+    queryFn: () => fetchServiceReviews(serviceId, page),
+    placeholderData: keepPreviousData,
+  })
 }

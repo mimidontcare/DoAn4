@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { ErrorState, LoadingState } from '@/components/common/QueryStatus'
+import { RatingStars } from '@/components/common/RatingStars'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -111,6 +112,12 @@ export function AdminStaffDetailPage() {
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold">{staff.fullName}</h1>
           <StaffStatusBadge staff={staff} />
+          {staff.rating && staff.rating.average !== null && (
+            <span className="flex items-center gap-2 text-sm">
+              <RatingStars value={staff.rating.average} />
+              {staff.rating.average.toFixed(1)} ({staff.rating.count} đánh giá)
+            </span>
+          )}
         </div>
         <Button
           variant={locked ? 'outline' : 'destructive'}

@@ -7,6 +7,7 @@ import { formatVnd } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 import { ServiceImage } from '../components/ServiceImage'
+import { ServiceReviewsSection } from '../components/ServiceReviewsSection'
 import { useService } from '../hooks'
 import { UNIT_LABEL } from '../units'
 
@@ -125,6 +126,7 @@ export function ServiceDetailPage() {
           Giá lúc đặt là giá tạm tính; khối lượng thực tế được kiểm tra khi nhân viên đến.
         </p>
       </section>
+      <ServiceReviewsSection serviceId={service.id} />
     </article>
   )
 }

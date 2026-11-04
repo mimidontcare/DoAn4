@@ -1,6 +1,10 @@
 import { apiClient, unwrap, type ApiResponse } from '@/api/client'
 import type { PaymentMethod } from '@/features/booking/types'
 import type {
+  AdminReview,
+  AdminReviewFilters,
+  BlockedDate,
+  Dashboard,
   AdminBookingDetail,
   AdminBookingFilters,
   AdminBookingSummary,
@@ -29,7 +33,11 @@ export async function fetchAdminBookings(
   filters: AdminBookingFilters,
 ): Promise<Paginated<AdminBookingSummary>> {
   const res = await apiClient.get<ApiResponse<Paginated<AdminBookingSummary>>>('/admin/bookings', {
-    params: { ...filters, q: filters.q || undefined },
+    params: {
+      ...filters,
+      q: filters.q || undefined,
+      overdueCheckIn: filters.overdueCheckIn || undefined,
+    },
   })
   return unwrap(res.data)
 }
@@ -288,4 +296,47 @@ export async function createUnavailability(
 
 export async function deleteUnavailability(staffId: number, id: number): Promise<void> {
   await apiClient.delete(`/admin/staff/${staffId}/unavailabilities/${id}`)
+}
+
+// ---------- Tổng quan, đánh giá, ngày không phục vụ ----------
+
+export async function fetchDashboard(): Promise<Dashboard> {
+  const res = await apiClient.get<ApiResponse<Dashboard>>('/admin/dashboard')
+  return unwrap(res.data)
+}
+
+export async function fetchAdminReviews(
+  filters: AdminReviewFilters,
+): Promise<Paginated<AdminReview>> {
+  const res = await apiClient.get<ApiResponse<Paginated<AdminReview>>>('/admin/reviews', {
+    params: filters,
+  })
+  return unwrap(res.data)
+}
+
+export async function setReviewHidden(id: number, hidden: boolean): Promise<AdminReview> {
+  const res = await apiClient.patch<ApiResponse<AdminReview>>(
+    `/admin/reviews/${id}/${hidden ? 'hide' : 'unhide'}`,
+  )
+  return unwrap(res.data)
+}
+
+export async function fetchBlockedDates(): Promise<BlockedDate[]> {
+  const res = await apiClient.get<ApiResponse<BlockedDate[]>>('/admin/blocked-dates')
+  return unwrap(res.data)
+}
+
+export async function createBlockedDate(input: {
+  date: string
+  reason?: string
+}): Promise<BlockedDate & { affectedBookings: number }> {
+  const res = await apiClient.post<ApiResponse<BlockedDate & { affectedBookings: number }>>(
+    '/admin/blocked-dates',
+    input,
+  )
+  return unwrap(res.data)
+}
+
+export async function deleteBlockedDate(id: number): Promise<void> {
+  await apiClient.delete(`/admin/blocked-dates/${id}`)
 }

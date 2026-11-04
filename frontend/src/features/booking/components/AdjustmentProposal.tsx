@@ -14,7 +14,7 @@ export function AdjustmentProposal({ proposal, currentTotal, actions }: Adjustme
   return (
     <section
       aria-labelledby="proposal-heading"
-      className="grid gap-3 rounded-xl border-2 border-cta bg-card p-4"
+      className="grid gap-3 rounded-xl border-2 border-primary bg-card p-4"
     >
       <div className="grid gap-1">
         <h2 id="proposal-heading" className="text-lg font-semibold">

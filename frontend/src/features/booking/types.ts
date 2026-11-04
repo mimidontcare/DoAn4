@@ -63,11 +63,14 @@ export interface Quote {
   itemsTotal: number
   subtotal: number
   surcharge: number
+  surchargePercent: number
   total: number
   manMinutes: number
   staffCount: number
   durationMinutes: number
   availableStartTimes: string[]
+  /** T08: ngày không phục vụ. */
+  blockedDate: { reason: string | null } | null
 }
 
 export interface CreateBookingInput {
@@ -111,6 +114,11 @@ export interface BookingDetail extends BookingSummary {
   proposal: Proposal | null
   paymentMethod: PaymentMethod | null
   paidAt: string | null
+  surchargePercent: number
+  rescheduleCount: number
+  review: { rating: number; comment: string | null; createdAt: string } | null
+  /** V01: hạn cuối để đánh giá; null khi không đánh giá được. */
+  reviewDeadline: string | null
   team: { fullName: string; isLeader: boolean }[]
   items: {
     id: number
@@ -141,4 +149,23 @@ export interface BookingPage {
   total: number
   page: number
   pageSize: number
+}
+
+export interface ReviewInput {
+  rating: number
+  comment?: string
+}
+
+export interface RescheduleOptions {
+  availableStartTimes: string[]
+  surchargePercent: number
+  total: number
+  blockedDate: { reason: string | null } | null
+  remainingReschedules: number
+}
+
+export interface RescheduleInput {
+  startAt: string
+  /** Tổng tiền khách đã thấy cho giờ mới; lệch với giá hiện tại thì server trả 409. */
+  expectedTotal: number
 }

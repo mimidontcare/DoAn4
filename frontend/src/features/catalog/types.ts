@@ -39,3 +39,20 @@ export interface ServiceAreas {
   province: { id: number; code: string; name: string } | null
   zones: { id: number; name: string; wards: PublicWard[] }[]
 }
+
+export interface PublicReview {
+  id: number
+  rating: number
+  comment: string | null
+  createdAt: string
+  customerName: string
+}
+
+export interface ServiceReviews {
+  items: PublicReview[]
+  total: number
+  page: number
+  pageSize: number
+  /** Null khi chưa có đánh giá. */
+  average: number | null
+}

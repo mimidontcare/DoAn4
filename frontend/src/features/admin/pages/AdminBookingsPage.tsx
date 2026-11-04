@@ -1,14 +1,14 @@
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { ErrorState, LoadingState } from '@/components/common/QueryStatus'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { BookingStatusBadge } from '@/features/booking/components/BookingStatusBadge'
-import { STATUS_LABEL } from '@/features/booking/labels'
-import type { BookingStatus } from '@/features/booking/types'
+import { PAYMENT_LABEL, STATUS_LABEL } from '@/features/booking/labels'
+import type { BookingStatus, PaymentStatus } from '@/features/booking/types'
 import { formatVnd } from '@/lib/format'
 import { formatDateTime } from '@/lib/time'
 import { useAdminBookings } from '../hooks'
@@ -17,13 +17,36 @@ const PAGE_SIZE = 20
 const STATUSES = Object.keys(STATUS_LABEL) as BookingStatus[]
 
 export function AdminBookingsPage() {
-  const [status, setStatus] = useState<BookingStatus>()
+  // Bộ lọc nằm trên URL để các ô "Cần xử lý" ở trang Tổng quan dẫn thẳng tới đây.
+  const [params, setParams] = useSearchParams()
+  const status = (params.get('status') || undefined) as BookingStatus | undefined
+  const paymentStatus = (params.get('paymentStatus') || undefined) as PaymentStatus | undefined
+  const overdueCheckIn = params.get('overdueCheckIn') === 'true'
+  const page = Number(params.get('page')) || 1
   const [q, setQ] = useState('')
-  const [page, setPage] = useState(1)
   const deferredQ = useDeferredValue(q.trim())
+
+  /** Đổi bộ lọc thì về trang 1. */
+  function update(changes: Record<string, string | undefined>) {
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        for (const [key, value] of Object.entries(changes)) {
+          if (value) next.set(key, value)
+          else next.delete(key)
+        }
+        if (!('page' in changes)) next.delete('page')
+        return next
+      },
+      { replace: true },
+    )
+  }
+  const setPage = (fn: (p: number) => number) => update({ page: String(fn(page)) })
 
   const { data, isPending, isError, error, refetch, isPlaceholderData } = useAdminBookings({
     status,
+    paymentStatus,
+    overdueCheckIn,
     q: deferredQ,
     page,
     pageSize: PAGE_SIZE,
@@ -37,16 +60,14 @@ export function AdminBookingsPage() {
         <p className="text-muted-foreground">Đơn sắp đến giờ được xếp lên trước.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="grid gap-2">
           <Label htmlFor="booking-filter-status">Trạng thái</Label>
           <NativeSelect
             id="booking-filter-status"
             value={status ?? ''}
-            onChange={(e) => {
-              setStatus((e.target.value || undefined) as BookingStatus | undefined)
-              setPage(1)
-            }}
+            disabled={overdueCheckIn}
+            onChange={(e) => update({ status: e.target.value || undefined })}
           >
             <option value="">Tất cả</option>
             {STATUSES.map((value) => (
@@ -70,11 +91,37 @@ export function AdminBookingsPage() {
               value={q}
               onChange={(e) => {
                 setQ(e.target.value)
-                setPage(1)
+                update({})
               }}
             />
           </div>
         </div>
+        <div className="grid gap-2">
+          <Label htmlFor="booking-filter-payment">Thanh toán</Label>
+          <NativeSelect
+            id="booking-filter-payment"
+            value={paymentStatus ?? ''}
+            onChange={(e) => update({ paymentStatus: e.target.value || undefined })}
+          >
+            <option value="">Tất cả</option>
+            {(Object.keys(PAYMENT_LABEL) as PaymentStatus[]).map((value) => (
+              <option key={value} value={value}>
+                {PAYMENT_LABEL[value]}
+              </option>
+            ))}
+          </NativeSelect>
+        </div>
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 self-end">
+          <input
+            type="checkbox"
+            className="size-5 accent-primary"
+            checked={overdueCheckIn}
+            onChange={(e) =>
+              update({ overdueCheckIn: e.target.checked ? 'true' : undefined, status: undefined })
+            }
+          />
+          Quá giờ chưa check-in
+        </label>
       </div>
 
       {isPending && <LoadingState />}

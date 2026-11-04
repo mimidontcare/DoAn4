@@ -4,6 +4,9 @@ import { ChangePasswordPage } from '@/features/auth/pages/ChangePasswordPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { AdminAreasPage } from '@/features/admin/pages/AdminAreasPage'
+import { AdminBlockedDatesPage } from '@/features/admin/pages/AdminBlockedDatesPage'
+import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage'
+import { AdminReviewsPage } from '@/features/admin/pages/AdminReviewsPage'
 import { AdminBookingDetailPage } from '@/features/admin/pages/AdminBookingDetailPage'
 import { AdminBookingsPage } from '@/features/admin/pages/AdminBookingsPage'
 import { AdminServiceDetailPage } from '@/features/admin/pages/AdminServiceDetailPage'
@@ -83,8 +86,11 @@ export const router = createBrowserRouter([
         path: '/admin',
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Navigate to="bookings" replace /> },
+          { index: true, element: <Navigate to="dashboard" replace /> },
+          { path: 'dashboard', element: <AdminDashboardPage /> },
           { path: 'bookings', element: <AdminBookingsPage /> },
+          { path: 'reviews', element: <AdminReviewsPage /> },
+          { path: 'blocked-dates', element: <AdminBlockedDatesPage /> },
           { path: 'bookings/:id', element: <AdminBookingDetailPage /> },
           { path: 'services', element: <AdminServicesPage /> },
           { path: 'services/:id', element: <AdminServiceDetailPage /> },
