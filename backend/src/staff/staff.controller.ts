@@ -21,7 +21,11 @@ import { CreateUnavailabilityDto } from './dto/create-unavailability.dto';
 import { ListStaffQueryDto } from './dto/list-staff-query.dto';
 import { SetStaffZonesDto } from './dto/set-staff-zones.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
-import type { StaffView, UnavailabilityView } from './staff.select';
+import type {
+  StaffDetailView,
+  StaffView,
+  UnavailabilityView,
+} from './staff.select';
 import { StaffService } from './staff.service';
 
 /** Khóa/mở khóa nhân viên dùng chung /admin/users/:id/lock|unlock. */
@@ -46,7 +50,7 @@ export class StaffController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Chi tiết nhân viên kèm khu vực' })
-  get(@Param('id', ParseIntPipe) id: number): Promise<StaffView> {
+  get(@Param('id', ParseIntPipe) id: number): Promise<StaffDetailView> {
     return this.staff.get(id);
   }
 

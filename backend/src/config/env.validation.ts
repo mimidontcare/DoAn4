@@ -147,6 +147,34 @@ class EnvironmentVariables {
   @Min(1)
   STAFF_SCHEDULE_MAX_DAYS: number;
 
+  // P05: % phụ phí đơn bắt đầu vào thứ Bảy, Chủ nhật.
+  @IsInt()
+  @Min(0)
+  WEEKEND_SURCHARGE_PERCENT: number;
+
+  // R01: số lần đổi lịch tối đa mỗi đơn.
+  @IsInt()
+  @Min(0)
+  MAX_RESCHEDULES: number;
+
+  // V01: số ngày được đánh giá kể từ khi đơn hoàn thành.
+  @IsInt()
+  @Min(1)
+  REVIEW_WINDOW_DAYS: number;
+
+  // Job tự hủy: đơn PENDING còn ít hơn số giờ này thì hủy.
+  @IsInt()
+  @Min(0)
+  AUTO_CANCEL_BEFORE_HOURS: number;
+
+  @IsInt()
+  @Min(1)
+  AUTO_CANCEL_INTERVAL_MINUTES: number;
+
+  // Tắt job định kỳ khi chạy e2e để không đụng dữ liệu test.
+  @IsIn(['true', 'false'])
+  SCHEDULER_ENABLED: string;
+
   // Thư mục lưu ảnh upload, tương đối với thư mục chạy backend.
   @IsString()
   @IsNotEmpty()
@@ -184,6 +212,12 @@ const DEFAULTS: Record<string, string> = {
   NO_SHOW_AFTER_MINUTES: '30',
   MAX_ADJUSTMENT_PERCENT: '30',
   STAFF_SCHEDULE_MAX_DAYS: '31',
+  WEEKEND_SURCHARGE_PERCENT: '10',
+  MAX_RESCHEDULES: '2',
+  REVIEW_WINDOW_DAYS: '7',
+  AUTO_CANCEL_BEFORE_HOURS: '2',
+  AUTO_CANCEL_INTERVAL_MINUTES: '5',
+  SCHEDULER_ENABLED: 'true',
   UPLOAD_DIR: 'uploads',
   UPLOAD_MAX_BYTES: '2097152',
 };

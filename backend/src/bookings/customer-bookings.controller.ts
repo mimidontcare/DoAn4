@@ -18,11 +18,15 @@ import type { PublicUser } from '../users/user.select';
 import type { BookingDetailView, BookingSummaryView } from './booking.select';
 import { AdjustmentService } from './adjustment.service';
 import { BookingsService } from './bookings.service';
+import { RescheduleService } from './reschedule.service';
+import type { RescheduleOptions } from './reschedule.service';
 import type { QuoteResult } from './bookings.service';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ListBookingsQueryDto } from './dto/list-bookings-query.dto';
 import { QuoteBookingDto } from './dto/quote-booking.dto';
+import { RescheduleBookingDto } from './dto/reschedule-booking.dto';
+import { RescheduleOptionsQueryDto } from './dto/reschedule-options-query.dto';
 import { RespondAdjustmentDto } from './dto/respond-adjustment.dto';
 
 @ApiTags('bookings')
@@ -33,6 +37,7 @@ export class CustomerBookingsController {
   constructor(
     private readonly bookings: BookingsService,
     private readonly adjustment: AdjustmentService,
+    private readonly reschedule: RescheduleService,
   ) {}
 
   @Post('bookings/quote')
@@ -92,5 +97,29 @@ export class CustomerBookingsController {
     @Body() dto: RespondAdjustmentDto,
   ): Promise<BookingDetailView> {
     return this.adjustment.respondAsCustomer(user.id, id, dto.accept);
+  }
+
+  @Get('bookings/:id/reschedule-options')
+  @ApiOperation({
+    summary: 'Giờ trống và giá mới khi đổi lịch sang ngày khác (R01)',
+  })
+  rescheduleOptions(
+    @CurrentUser() user: PublicUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: RescheduleOptionsQueryDto,
+  ): Promise<RescheduleOptions> {
+    return this.reschedule.options(user.id, id, query.date);
+  }
+
+  @Patch('bookings/:id/reschedule')
+  @ApiOperation({
+    summary: 'Đổi lịch (R01): nhóm cũ còn rảnh thì giữ, không thì về PENDING',
+  })
+  rescheduleBooking(
+    @CurrentUser() user: PublicUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RescheduleBookingDto,
+  ): Promise<BookingDetailView> {
+    return this.reschedule.reschedule(user.id, id, dto);
   }
 }

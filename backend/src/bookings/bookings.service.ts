@@ -14,6 +14,7 @@ import {
   Prisma,
   WardType,
 } from '@prisma/client';
+import dayjs from 'dayjs';
 import { AreasService } from '../areas/areas.service';
 import type { Paginated } from '../common/dto/pagination.dto';
 import { toZoned } from '../common/utils/time';
@@ -36,6 +37,7 @@ import {
   assessCustomerCancel,
   CancelPolicy,
   recordBookingHistory,
+  completedAtOf,
   recordPayment,
   transitionBooking,
 } from './booking-state';
@@ -64,6 +66,8 @@ const CODE_RANDOM_LENGTH = 4;
 
 export interface QuoteResult extends PriceBreakdown {
   availableStartTimes: Date[];
+  /** T08: ngày không phục vụ thì có lý do (có thể rỗng). */
+  blockedDate: { reason: string | null } | null;
 }
 
 /** C06–C09: báo giá, tạo, xem và hủy booking của khách; A06: admin xem và hủy. */
@@ -72,6 +76,7 @@ export class BookingsService {
   private readonly tz: string;
   private readonly maxPending: number;
   private readonly cancelPolicy: CancelPolicy;
+  private readonly reviewWindowDays: number;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -84,6 +89,7 @@ export class BookingsService {
     this.maxPending = config.getOrThrow<number>(
       'booking.maxPendingPerCustomer',
     );
+    this.reviewWindowDays = config.getOrThrow<number>('review.windowDays');
     this.cancelPolicy = {
       minHoursBeforeStart: config.getOrThrow<number>('booking.cancelMinHours'),
       lateCancelHours: config.getOrThrow<number>('booking.lateCancelHours'),
@@ -91,29 +97,37 @@ export class BookingsService {
   }
 
   async quote(customerId: number, dto: QuoteBookingDto): Promise<QuoteResult> {
-    const { price, zoneId } = await this.prepare(customerId, dto);
-    const availableStartTimes = await this.availability.listStartTimes(
-      zoneId,
-      dto.date,
-      price.staffCount,
-      price.durationMinutes,
+    const { price, zoneId } = await this.prepare(
+      customerId,
+      dto,
+      this.pricing.surchargePercentOn(dto.date),
     );
-    return { ...price, availableStartTimes };
+    const [availableStartTimes, blockedDate] = await Promise.all([
+      this.availability.listStartTimes(
+        zoneId,
+        dto.date,
+        price.staffCount,
+        price.durationMinutes,
+      ),
+      this.availability.findBlockedDate(this.prisma, dto.date),
+    ]);
+    return { ...price, availableStartTimes, blockedDate };
   }
 
   async create(
     customerId: number,
     dto: CreateBookingDto,
   ): Promise<BookingDetailView> {
+    const startAt = new Date(dto.startAt);
     const { price, zoneId, service, address, ward } = await this.prepare(
       customerId,
       dto,
+      this.pricing.surchargePercentAt(startAt),
     );
     // expectedTotal chỉ để phát hiện giá đổi sau khi báo giá, không dùng làm giá (P01).
     if (dto.expectedTotal !== price.total) {
       throw new ConflictException('Giá đã thay đổi, vui lòng báo giá lại');
     }
-    const startAt = new Date(dto.startAt);
     this.availability.assertStartTimeAllowed(startAt, price.durationMinutes);
 
     const id = await this.prisma.$transaction(async (tx) => {
@@ -141,6 +155,7 @@ export class BookingsService {
           `Mỗi khách chỉ có tối đa ${this.maxPending} đơn đang chờ xử lý`,
         );
       }
+      await this.availability.assertNotBlocked(tx, startAt);
       const isAvailable = await this.availability.isSlotAvailable(
         tx,
         zoneId,
@@ -175,6 +190,7 @@ export class BookingsService {
           itemsTotal: price.itemsTotal,
           subtotal: price.subtotal,
           surcharge: price.surcharge,
+          surchargePercent: price.surchargePercent,
           totalPrice: price.total,
           note: dto.note,
           items: {
@@ -225,7 +241,20 @@ export class BookingsService {
       where: { id },
       select: BOOKING_DETAIL_SELECT,
     });
-    return toBookingDetail(row);
+    return toBookingDetail(row, this.reviewDeadlineOf(row));
+  }
+
+  /** V01: còn đánh giá được đến hạn này (tính từ lúc hoàn thành). */
+  private reviewDeadlineOf(row: {
+    status: BookingStatus;
+    review: unknown;
+    histories: { action: BookingAction; createdAt: Date }[];
+  }): Date | null {
+    if (row.status !== BookingStatus.COMPLETED || row.review) return null;
+    const completedAt = completedAtOf(row.histories);
+    if (!completedAt) return null;
+    const deadline = dayjs(completedAt).add(this.reviewWindowDays, 'day');
+    return deadline.isAfter(dayjs()) ? deadline.toDate() : null;
   }
 
   async cancelOwned(
@@ -266,7 +295,13 @@ export class BookingsService {
   ): Promise<Paginated<AdminBookingSummaryView>> {
     const where: Prisma.BookingWhereInput = {
       status: query.status,
+      paymentStatus: query.paymentStatus,
       ...(query.q && { code: { contains: query.q } }),
+      // A06: đã qua giờ bắt đầu mà chưa check-in.
+      ...(query.overdueCheckIn && {
+        status: BookingStatus.CONFIRMED,
+        startAt: { lt: new Date() },
+      }),
     };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.booking.findMany({
@@ -356,6 +391,7 @@ export class BookingsService {
   private async prepare(
     customerId: number,
     dto: { serviceId: number; addressId: number; items: RequestedItem[] },
+    surchargePercent: number,
   ) {
     const service = await this.prisma.service.findFirst({
       where: { id: dto.serviceId, isActive: true },
@@ -398,7 +434,7 @@ export class BookingsService {
         'Phường/xã này hiện chưa nằm trong vùng phục vụ',
       );
     }
-    const price = this.pricing.calculate(service, dto.items);
+    const price = this.pricing.calculate(service, dto.items, surchargePercent);
     return { price, zoneId: ward.zone.id, service, address, ward };
   }
 

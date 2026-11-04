@@ -14,6 +14,7 @@ import {
   STAFF_LOCK_TX_OPTIONS,
 } from '../bookings/staff-schedule';
 import type { Paginated } from '../common/dto/pagination.dto';
+import { roundRating } from '../common/utils/rating';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { CreateUnavailabilityDto } from './dto/create-unavailability.dto';
@@ -21,6 +22,7 @@ import { ListStaffQueryDto } from './dto/list-staff-query.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import {
   STAFF_SELECT,
+  StaffDetailView,
   StaffView,
   toStaffView,
   UNAVAILABILITY_SELECT,
@@ -74,7 +76,8 @@ export class StaffService {
     };
   }
 
-  async get(id: number): Promise<StaffView> {
+  /** V02: điểm của đơn tính cho cả nhóm; đánh giá bị ẩn (V03) không tính. */
+  async get(id: number): Promise<StaffDetailView> {
     const row = await this.prisma.user.findFirst({
       where: { id, role: UserRole.STAFF },
       select: STAFF_SELECT,
@@ -82,7 +85,21 @@ export class StaffService {
     if (!row) {
       throw new NotFoundException(STAFF_NOT_FOUND);
     }
-    return toStaffView(row);
+    const rating = await this.prisma.review.aggregate({
+      where: {
+        isHidden: false,
+        booking: { assignments: { some: { staffId: id } } },
+      },
+      _avg: { rating: true },
+      _count: true,
+    });
+    return {
+      ...toStaffView(row),
+      rating: {
+        average: roundRating(rating._avg.rating),
+        count: rating._count,
+      },
+    };
   }
 
   /** U01: tài khoản STAFF do admin tạo, bắt đổi mật khẩu lần đầu. */

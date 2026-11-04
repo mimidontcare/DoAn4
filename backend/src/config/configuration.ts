@@ -37,6 +37,16 @@ export default () => ({
     noShowAfterMinutes: Number(process.env.NO_SHOW_AFTER_MINUTES),
     maxAdjustmentPercent: Number(process.env.MAX_ADJUSTMENT_PERCENT),
     staffScheduleMaxDays: Number(process.env.STAFF_SCHEDULE_MAX_DAYS),
+    weekendSurchargePercent: Number(process.env.WEEKEND_SURCHARGE_PERCENT),
+    maxReschedules: Number(process.env.MAX_RESCHEDULES),
+  },
+  review: {
+    windowDays: Number(process.env.REVIEW_WINDOW_DAYS),
+  },
+  scheduler: {
+    enabled: process.env.SCHEDULER_ENABLED === 'true',
+    autoCancelBeforeHours: Number(process.env.AUTO_CANCEL_BEFORE_HOURS),
+    autoCancelIntervalMinutes: Number(process.env.AUTO_CANCEL_INTERVAL_MINUTES),
   },
   upload: {
     dir: process.env.UPLOAD_DIR,

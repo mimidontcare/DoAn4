@@ -1,17 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AreasModule } from './areas/areas.module';
 import { AuthModule } from './auth/auth.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 import { StaffModule } from './staff/staff.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
@@ -43,6 +47,8 @@ import { UsersModule } from './users/users.module';
         },
       ],
     }),
+    // Job đăng ký động trong SchedulerService, theo cấu hình SCHEDULER_ENABLED.
+    ScheduleModule.forRoot(),
     PrismaModule,
     HealthModule,
     AuthModule,
@@ -52,6 +58,9 @@ import { UsersModule } from './users/users.module';
     StorageModule,
     StaffModule,
     BookingsModule,
+    ReviewsModule,
+    DashboardModule,
+    SchedulerModule,
   ],
   providers: [
     // Thứ tự đăng ký là thứ tự chạy: xác thực trước, kiểm tra role sau.

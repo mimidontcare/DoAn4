@@ -61,7 +61,9 @@ export class AvailabilityService {
     staffCount: number,
     durationMinutes: number,
     now: Date = new Date(),
+    excludeBookingId?: number,
   ): Promise<Date[]> {
+    if (await this.findBlockedDate(this.prisma, date)) return [];
     const candidates = this.candidateStarts(date, durationMinutes, now);
     if (candidates.length === 0) return [];
 
@@ -70,6 +72,7 @@ export class AvailabilityService {
       zoneId,
       candidates[0],
       this.endOf(candidates[candidates.length - 1], durationMinutes),
+      excludeBookingId,
     );
     return candidates.filter(
       (start) =>
@@ -85,9 +88,16 @@ export class AvailabilityService {
     startAt: Date,
     staffCount: number,
     durationMinutes: number,
+    excludeBookingId?: number,
   ): Promise<boolean> {
     const endAt = this.endOf(startAt, durationMinutes);
-    const load = await this.loadZone(db, zoneId, startAt, endAt);
+    const load = await this.loadZone(
+      db,
+      zoneId,
+      startAt,
+      endAt,
+      excludeBookingId,
+    );
     return this.freeStaffCount(load, startAt, endAt) >= staffCount;
   }
 
@@ -119,6 +129,25 @@ export class AvailabilityService {
     if (!this.isWithinBookingWindow(startAt, now)) {
       throw new UnprocessableEntityException(
         `Chỉ đặt trước tối thiểu ${this.minLeadMinutes / MINUTES_PER_HOUR} giờ, tối đa ${this.maxAdvanceDays} ngày`,
+      );
+    }
+  }
+
+  /** T08: ngày (theo múi giờ nghiệp vụ) có trong danh sách không phục vụ. */
+  findBlockedDate(db: Db, date: string) {
+    return db.blockedDate.findUnique({
+      where: { date: new Date(`${date}T00:00:00.000Z`) },
+      select: { reason: true },
+    });
+  }
+
+  /** T08: chặn đặt hoặc đổi lịch vào ngày không phục vụ. Vi phạm → 422. */
+  async assertNotBlocked(db: Db, startAt: Date): Promise<void> {
+    const date = toZoned(startAt, this.tz).format('YYYY-MM-DD');
+    const blocked = await this.findBlockedDate(db, date);
+    if (blocked) {
+      throw new UnprocessableEntityException(
+        `Ngày này không phục vụ${blocked.reason ? `: ${blocked.reason}` : ''}`,
       );
     }
   }
@@ -156,6 +185,7 @@ export class AvailabilityService {
     zoneId: number,
     from: Date,
     to: Date,
+    excludeBookingId?: number,
   ): Promise<ZoneLoad> {
     const staff = await db.user.findMany({
       where: {
@@ -177,6 +207,7 @@ export class AvailabilityService {
     });
     const pendingBookings = await db.booking.findMany({
       where: {
+        id: { not: excludeBookingId },
         zoneId,
         status: BookingStatus.PENDING,
         startAt: { lt: new Date(to.getTime() + this.bufferMs) },
@@ -187,6 +218,7 @@ export class AvailabilityService {
     const assignments = await db.bookingAssignment.findMany({
       where: {
         staffId: { in: staffIds },
+        bookingId: { not: excludeBookingId },
         booking: {
           status: { in: BUSY_STATUSES },
           startAt: { lt: new Date(to.getTime() + this.bufferMs) },

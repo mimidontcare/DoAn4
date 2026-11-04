@@ -15,6 +15,7 @@ import {
   dataOf,
   loginAs,
   resetDatabase,
+  upcomingWeekday,
 } from './e2e-helpers';
 
 dayjs.extend(utc);
@@ -36,8 +37,9 @@ describe('Booking khách (e2e)', () => {
   let staffIds: number[];
 
   // Hai ngày tới: luôn nằm trong cửa sổ đặt trước, không phụ thuộc giờ chạy test.
-  const date = dayjs().tz(TZ).add(2, 'day').format('YYYY-MM-DD');
-  const nextDate = dayjs().tz(TZ).add(3, 'day').format('YYYY-MM-DD');
+  // Ngày thường: giá trong test không có phụ phí cuối tuần.
+  const date = upcomingWeekday(2);
+  const nextDate = upcomingWeekday(0, date);
   const startOn = (day: string, time: string) =>
     dayjs.tz(`${day} ${time}`, TZ).toISOString();
   const startAt = startOn(date, '09:00');

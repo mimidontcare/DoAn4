@@ -1,7 +1,7 @@
 import { UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PricingUnit } from '@prisma/client';
-import { PricedServiceItem, PricingService } from './pricing.service';
+import { PricedServiceItem, PricingService, totalsOf } from './pricing.service';
 
 const floor: PricedServiceItem = {
   id: 1,
@@ -26,10 +26,12 @@ const sofa: PricedServiceItem = {
 const service = { minCharge: 500_000, items: [floor, sofa] };
 
 function createService(maxStaffPerBooking = 4) {
-  const values: Record<string, number> = {
+  const values: Record<string, number | string> = {
     'booking.manMinutesPerStaff': 240,
     'booking.maxStaffPerBooking': maxStaffPerBooking,
     'booking.slotStepMinutes': 30,
+    'booking.weekendSurchargePercent': 10,
+    timezone: 'Asia/Ho_Chi_Minh',
   };
   return new PricingService({
     getOrThrow: (key: string) => values[key],
@@ -143,5 +145,44 @@ describe('PricingService', () => {
         { serviceItemId: 99, quantity: 1 },
       ]),
     ).toThrow(/không thuộc dịch vụ/);
+  });
+});
+
+describe('Phụ phí cuối tuần (P05)', () => {
+  const pricing = createService();
+
+  it('thứ Bảy, Chủ nhật theo giờ Việt Nam; ngày thường 0%', () => {
+    // 2026-11-07 là thứ Bảy.
+    expect(pricing.surchargePercentOn('2026-11-07')).toBe(10);
+    expect(pricing.surchargePercentOn('2026-11-08')).toBe(10);
+    expect(pricing.surchargePercentOn('2026-11-09')).toBe(0);
+    // 23:30 UTC thứ Sáu là 06:30 sáng thứ Bảy giờ Việt Nam.
+    expect(
+      pricing.surchargePercentAt(new Date('2026-11-06T23:30:00.000Z')),
+    ).toBe(10);
+  });
+
+  it('tính trên tổng sau min_charge, rồi làm tròn 1.000đ', () => {
+    const result = pricing.calculate(
+      service,
+      [{ serviceItemId: 1, quantity: 20 }],
+      10,
+    );
+    expect(result).toMatchObject({
+      subtotal: 500_000,
+      surcharge: 50_000,
+      total: 550_000,
+      surchargePercent: 10,
+    });
+  });
+
+  it('totalsOf: phụ phí là số nguyên VND', () => {
+    const totals = totalsOf(
+      [{ quantity: 1, unitPrice: 333_333, minutesPerUnit: 0 }],
+      0,
+      10,
+    );
+    expect(totals.surcharge).toBe(33_333);
+    expect(totals.total).toBe(367_000);
   });
 });

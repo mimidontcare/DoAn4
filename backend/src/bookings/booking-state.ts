@@ -255,3 +255,11 @@ export function assertNoPendingAdjustment(
     );
   }
 }
+
+/** Thời điểm hoàn thành: bản ghi lịch sử COMPLETE gần nhất. */
+export function completedAtOf(
+  histories: { action: BookingAction; createdAt: Date }[],
+): Date | null {
+  const done = histories.filter((h) => h.action === BookingAction.COMPLETE);
+  return done.length > 0 ? done[done.length - 1].createdAt : null;
+}

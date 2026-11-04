@@ -28,6 +28,8 @@ const BOOKING_CORE_SELECT = {
   manMinutes: true,
   originalManMinutes: true,
   minCharge: true,
+  surchargePercent: true,
+  rescheduleCount: true,
   paymentMethod: true,
   paidAt: true,
   itemsTotal: true,
@@ -72,6 +74,7 @@ const TEAM_ORDER = [
 
 export const BOOKING_DETAIL_SELECT = {
   ...BOOKING_CORE_SELECT,
+  review: { select: { rating: true, comment: true, createdAt: true } },
   assignments: {
     orderBy: TEAM_ORDER,
     select: { isLeader: true, staff: { select: { fullName: true } } },
@@ -89,12 +92,18 @@ export type BookingDetailView = Omit<
 > &
   WithProposal & {
     team: { fullName: string; isLeader: boolean }[];
+    /** V01: hạn cuối để đánh giá; null khi không đánh giá được nữa. */
+    reviewDeadline: Date | null;
   };
 
-export function toBookingDetail(row: BookingDetailRow): BookingDetailView {
+export function toBookingDetail(
+  row: BookingDetailRow,
+  reviewDeadline: Date | null = null,
+): BookingDetailView {
   const { assignments, ...rest } = row;
   return {
     ...withProposal(rest),
+    reviewDeadline,
     team: assignments.map((a) => ({
       fullName: a.staff.fullName,
       isLeader: a.isLeader,
@@ -255,6 +264,7 @@ function withProposal<
     items: ItemRow[];
     adjustmentStatus: AdjustmentStatus;
     minCharge: number;
+    surchargePercent: number;
   },
 >(row: T): Omit<T, 'items'> & WithProposal {
   const { items } = row;
@@ -285,6 +295,7 @@ function withProposal<
               quantity: item.proposedQuantity ?? item.quantity,
             })),
             row.minCharge,
+            row.surchargePercent,
           ),
         }
       : null,

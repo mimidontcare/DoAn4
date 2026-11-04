@@ -33,6 +33,7 @@ describe('StaffService', () => {
       deleteMany: jest.Mock;
     };
     bookingAssignment: { findMany: jest.Mock };
+    review: { aggregate: jest.Mock };
     $queryRaw: jest.Mock;
     $transaction: jest.Mock;
   };
@@ -54,6 +55,11 @@ describe('StaffService', () => {
         deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
       bookingAssignment: { findMany: jest.fn().mockResolvedValue([]) },
+      review: {
+        aggregate: jest
+          .fn()
+          .mockResolvedValue({ _avg: { rating: null }, _count: 0 }),
+      },
       $queryRaw: jest.fn().mockResolvedValue([]),
       $transaction: jest.fn(
         (arg: Promise<unknown>[] | ((tx: unknown) => Promise<unknown>)) =>

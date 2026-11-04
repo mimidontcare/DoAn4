@@ -28,6 +28,7 @@ function setup() {
     staffUnavailability: { findMany: jest.fn().mockResolvedValue([]) },
     booking: { findMany: jest.fn().mockResolvedValue([]) },
     bookingAssignment: { findMany: jest.fn().mockResolvedValue([]) },
+    blockedDate: { findUnique: jest.fn().mockResolvedValue(null) },
   };
   const service = new AvailabilityService(
     db as unknown as PrismaService,
@@ -159,6 +160,31 @@ describe('AvailabilityService', () => {
       ).toBeGreaterThan(0);
     });
 
+    it('T08: ngày không phục vụ → không có giờ nào', async () => {
+      const { db, service } = setup();
+      db.blockedDate.findUnique.mockResolvedValue({ reason: 'Nghỉ lễ' });
+      expect(await service.listStartTimes(1, DATE, 1, 60, NOW)).toEqual([]);
+      expect(db.blockedDate.findUnique).toHaveBeenCalledWith({
+        where: { date: new Date('2026-11-02T00:00:00.000Z') },
+        select: { reason: true },
+      });
+    });
+
+    it('R01: đổi lịch không tính chính đơn đang đổi', async () => {
+      const { db, service } = setup();
+      await service.listStartTimes(1, DATE, 1, 60, NOW, 42);
+      const pendingWhere = (
+        db.booking.findMany.mock.calls[0] as [{ where: { id: unknown } }]
+      )[0].where;
+      expect(pendingWhere.id).toEqual({ not: 42 });
+      const assignedWhere = (
+        db.bookingAssignment.findMany.mock.calls[0] as [
+          { where: { bookingId: unknown } },
+        ]
+      )[0].where;
+      expect(assignedWhere.bookingId).toEqual({ not: 42 });
+    });
+
     it('T05: trừ đúng staff_count của đơn PENDING', async () => {
       const { db, service } = setup();
       db.user.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
@@ -202,6 +228,22 @@ describe('AvailabilityService', () => {
           dayjs.tz('2026-10-10 10:00', TZ).toDate(),
         ),
       ).toThrow(/tối đa 14 ngày/);
+    });
+  });
+
+  describe('assertNotBlocked (T08)', () => {
+    it('ngày theo múi giờ nghiệp vụ, không theo UTC', async () => {
+      const { db, service } = setup();
+      db.blockedDate.findUnique.mockResolvedValue({ reason: 'Nghỉ lễ' });
+      // 06:30 ngày 03/11 giờ Việt Nam là 23:30 UTC ngày 02/11.
+      const startAt = dayjs.tz('2026-11-03 06:30', TZ).toDate();
+      await expect(
+        service.assertNotBlocked(db as never, startAt),
+      ).rejects.toThrow(/không phục vụ: Nghỉ lễ/);
+      expect(db.blockedDate.findUnique).toHaveBeenCalledWith({
+        where: { date: new Date('2026-11-03T00:00:00.000Z') },
+        select: { reason: true },
+      });
     });
   });
 

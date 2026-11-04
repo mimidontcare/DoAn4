@@ -36,3 +36,8 @@ export const UNAVAILABILITY_SELECT = {
 export type UnavailabilityView = Prisma.StaffUnavailabilityGetPayload<{
   select: typeof UNAVAILABILITY_SELECT;
 }>;
+
+export type StaffDetailView = StaffView & {
+  /** V02: điểm trung bình các đơn đã làm (null khi chưa có đánh giá). */
+  rating: { average: number | null; count: number };
+};

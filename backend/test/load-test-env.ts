@@ -10,4 +10,6 @@ import { assertTestDatabase } from './setup-e2e';
  */
 const env = parseEnv(readFileSync(join(__dirname, '..', '.env.test'), 'utf8'));
 Object.assign(process.env, env);
+// Job định kỳ không chạy trong e2e; test gọi trực tiếp hàm của job khi cần.
+process.env.SCHEDULER_ENABLED = 'false';
 assertTestDatabase(process.env.DATABASE_URL);

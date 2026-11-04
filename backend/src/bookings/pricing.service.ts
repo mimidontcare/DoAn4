@@ -1,7 +1,9 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PricingUnit } from '@prisma/client';
+import dayjs from 'dayjs';
 import { roundToThousand } from '../common/utils/money';
+import { isWeekendInZone } from '../common/utils/time';
 
 export interface PricedServiceItem {
   id: number;
@@ -37,6 +39,7 @@ export interface PriceLine {
 
 export interface PriceBreakdown {
   lines: PriceLine[];
+  surchargePercent: number;
   itemsTotal: number;
   subtotal: number;
   surcharge: number;
@@ -60,15 +63,19 @@ export interface Totals {
   manMinutes: number;
 }
 
-/** P03, P04: tổng tiền và phút công của các dòng, áp dụng mức tối thiểu. */
-export function totalsOf(lines: CostLine[], minCharge: number): Totals {
+/** P03–P05: tổng tiền và phút công của các dòng, áp dụng mức tối thiểu và phụ phí. */
+export function totalsOf(
+  lines: CostLine[],
+  minCharge: number,
+  surchargePercent = 0,
+): Totals {
   const itemsTotal = lines.reduce(
     (sum, line) => sum + line.quantity * line.unitPrice,
     0,
   );
   const subtotal = Math.max(itemsTotal, minCharge);
-  // Phụ phí cuối tuần (P05) là mục tùy chọn, chưa làm.
-  const surcharge = 0;
+  // Tiền là số nguyên VND (P03).
+  const surcharge = Math.round((subtotal * surchargePercent) / 100);
   const manMinutes = lines.reduce(
     (sum, line) => sum + line.quantity * line.minutesPerUnit,
     0,
@@ -88,8 +95,14 @@ export class PricingService {
   private readonly manMinutesPerStaff: number;
   private readonly maxStaffPerBooking: number;
   private readonly durationStepMinutes: number;
+  private readonly tz: string;
+  private readonly weekendSurchargePercent: number;
 
   constructor(config: ConfigService) {
+    this.tz = config.getOrThrow<string>('timezone');
+    this.weekendSurchargePercent = config.getOrThrow<number>(
+      'booking.weekendSurchargePercent',
+    );
     this.manMinutesPerStaff = config.getOrThrow<number>(
       'booking.manMinutesPerStaff',
     );
@@ -101,12 +114,23 @@ export class PricingService {
     );
   }
 
+  /** P05, T07: thứ Bảy, Chủ nhật theo múi giờ nghiệp vụ của thời điểm bắt đầu. */
+  surchargePercentAt(startAt: Date): number {
+    return isWeekendInZone(startAt, this.tz) ? this.weekendSurchargePercent : 0;
+  }
+
+  /** Ngày "YYYY-MM-DD" theo múi giờ nghiệp vụ; lấy giữa trưa để không lệch ngày. */
+  surchargePercentOn(date: string): number {
+    return this.surchargePercentAt(dayjs.tz(`${date} 12:00`, this.tz).toDate());
+  }
+
   calculate(
     service: PricedService,
     requested: RequestedItem[],
+    surchargePercent = 0,
   ): PriceBreakdown {
     const lines = this.buildLines(service, requested);
-    const totals = totalsOf(lines, service.minCharge);
+    const totals = totalsOf(lines, service.minCharge, surchargePercent);
     const { manMinutes } = totals;
     const staffCount = Math.max(
       1,
@@ -118,6 +142,7 @@ export class PricingService {
 
     return {
       lines,
+      surchargePercent,
       ...totals,
       staffCount,
       durationMinutes: this.durationOf(manMinutes, staffCount),

@@ -165,6 +165,7 @@ export class AdjustmentService {
           version: true,
           adjustmentStatus: true,
           minCharge: true,
+          surchargePercent: true,
           items: {
             select: {
               id: true,
@@ -194,7 +195,11 @@ export class AdjustmentService {
           ? (item.proposedQuantity ?? item.quantity)
           : item.quantity,
       }));
-      const totals = totalsOf(finalLines, booking.minCharge);
+      const totals = totalsOf(
+        finalLines,
+        booking.minCharge,
+        booking.surchargePercent,
+      );
       const decision = accept ? 'Chấp nhận' : 'Từ chối';
       await updateBookingInPlace(tx, {
         booking,

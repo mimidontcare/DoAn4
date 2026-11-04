@@ -3,6 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
@@ -11,6 +14,30 @@ import type { AuthResult } from '../src/auth/auth.service';
 import type { ApiResponse } from '../src/common/interceptors/response.interceptor';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { assertTestDatabase } from './setup-e2e';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export const TZ = 'Asia/Ho_Chi_Minh';
+
+/**
+ * Ngày thường (thứ Hai–thứ Sáu) đầu tiên từ "hôm nay + days" theo múi giờ nghiệp vụ.
+ * Test về giá dùng ngày thường để không dính phụ phí cuối tuần (P05).
+ */
+export function upcomingWeekday(days: number, after?: string): string {
+  let day = after
+    ? dayjs.tz(after, TZ).add(1, 'day')
+    : dayjs().tz(TZ).add(days, 'day');
+  while (day.day() === 0 || day.day() === 6) day = day.add(1, 'day');
+  return day.format('YYYY-MM-DD');
+}
+
+/** Thứ Bảy đầu tiên từ "hôm nay + days". */
+export function upcomingSaturday(days: number): string {
+  let day = dayjs().tz(TZ).add(days, 'day');
+  while (day.day() !== 6) day = day.add(1, 'day');
+  return day.format('YYYY-MM-DD');
+}
 
 export const PASSWORD = 'matkhau123';
 
@@ -28,6 +55,8 @@ export async function createTestApp() {
 
 /** Xóa dữ liệu theo thứ tự khóa ngoại. */
 export async function resetDatabase(prisma: PrismaService) {
+  await prisma.review.deleteMany();
+  await prisma.blockedDate.deleteMany();
   await prisma.bookingAssignment.deleteMany();
   await prisma.bookingStatusHistory.deleteMany();
   await prisma.bookingItem.deleteMany();
