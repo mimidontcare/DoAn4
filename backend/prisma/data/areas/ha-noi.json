@@ -1,69 +1,787 @@
 {
-  "_note": "DỮ LIỆU MẪU cho demo (Phase 2): một phần phường/xã của Hà Nội sau sắp xếp 1/7/2025. Mã phường/xã (code) là mã tạm DMxxx, KHÔNG phải mã chính thức; phải thay bằng danh sách và mã chính thức trước Phase 8. Khu vực do công ty tự chia.",
-  "province": { "code": "01", "name": "Thành phố Hà Nội" },
+  "_note": "Danh sách 126 đơn vị hành chính cấp xã của Thành phố Hà Nội (51 phường, 75 xã) sau sắp xếp năm 2025. Tên và tên cũ (oldNameHint, rút gọn, chỉ để gợi ý tìm kiếm): Nghị quyết 1656/NQ-UBTVQH15 ngày 16/6/2025 (https://xaydungchinhsach.chinhphu.vn/toan-van-nghi-quyet-so-1656-nq-ubtvqh15-sap-xep-cac-dvhc-cap-xa-cua-thanh-pho-ha-noi-nam-2025-119250616192433872.htm). Mã số: Quyết định 19/2025/QĐ-TTg, Phụ lục II, hiệu lực 01/7/2025 (Công báo số 919+920 ngày 18/7/2025). Lấy ngày 2026-11-05. Mã 04930 (xã Yên Xuân) chưa đối chiếu được nguồn thứ hai. Khu vực do công ty tự chia; xã và phường xa trung tâm để ngoài vùng phục vụ, admin bật khi cần.",
+  "province": {
+    "code": "01",
+    "name": "Thành phố Hà Nội"
+  },
   "zones": [
     {
       "name": "Trung tâm",
       "wards": [
-        { "code": "DM001", "name": "Ba Đình", "type": "PHUONG" },
-        { "code": "DM002", "name": "Ngọc Hà", "type": "PHUONG" },
-        { "code": "DM003", "name": "Giảng Võ", "type": "PHUONG" },
-        { "code": "DM004", "name": "Hoàn Kiếm", "type": "PHUONG" },
-        { "code": "DM005", "name": "Cửa Nam", "type": "PHUONG" },
-        { "code": "DM006", "name": "Hai Bà Trưng", "type": "PHUONG" },
-        { "code": "DM007", "name": "Bạch Mai", "type": "PHUONG" },
-        { "code": "DM008", "name": "Vĩnh Tuy", "type": "PHUONG" },
-        { "code": "DM009", "name": "Đống Đa", "type": "PHUONG" },
-        { "code": "DM010", "name": "Kim Liên", "type": "PHUONG" },
-        { "code": "DM011", "name": "Văn Miếu - Quốc Tử Giám", "type": "PHUONG" },
-        { "code": "DM012", "name": "Láng", "type": "PHUONG" },
-        { "code": "DM013", "name": "Ô Chợ Dừa", "type": "PHUONG" }
+        {
+          "code": "00070",
+          "name": "Hoàn Kiếm",
+          "type": "PHUONG",
+          "oldNameHint": "Hàng Bạc, Hàng Bồ, Hàng Buồm, Hàng Đào, Hàng Gai, Hàng Mã, Lý Thái Tổ"
+        },
+        {
+          "code": "00082",
+          "name": "Cửa Nam",
+          "type": "PHUONG",
+          "oldNameHint": "Hàng Bài, Phan Chu Trinh, Trần Hưng Đạo"
+        },
+        {
+          "code": "00004",
+          "name": "Ba Đình",
+          "type": "PHUONG",
+          "oldNameHint": "Quán Thánh, Trúc Bạch, Đội Cấn, Kim Mã, Thụy Khuê"
+        },
+        {
+          "code": "00008",
+          "name": "Ngọc Hà",
+          "type": "PHUONG",
+          "oldNameHint": "Vĩnh Phúc, Liễu Giai, Đội Cấn, Ngọc Hà"
+        },
+        {
+          "code": "00025",
+          "name": "Giảng Võ",
+          "type": "PHUONG",
+          "oldNameHint": "Giảng Võ, Cát Linh, Thành Công, Cống Vị"
+        },
+        {
+          "code": "00256",
+          "name": "Hai Bà Trưng",
+          "type": "PHUONG",
+          "oldNameHint": "Đồng Nhân, Phố Huế, Bạch Đằng, Lê Đại Hành"
+        },
+        {
+          "code": "00283",
+          "name": "Vĩnh Tuy",
+          "type": "PHUONG",
+          "oldNameHint": "Mai Động, Thanh Lương, Vĩnh Tuy"
+        },
+        {
+          "code": "00292",
+          "name": "Bạch Mai",
+          "type": "PHUONG",
+          "oldNameHint": "Bạch Mai, Bách Khoa, Quỳnh Mai, Minh Khai, Đồng Tâm"
+        },
+        {
+          "code": "00235",
+          "name": "Đống Đa",
+          "type": "PHUONG",
+          "oldNameHint": "Thịnh Quang, Quang Trung, Láng Hạ, Nam Đồng"
+        },
+        {
+          "code": "00229",
+          "name": "Kim Liên",
+          "type": "PHUONG",
+          "oldNameHint": "Kim Liên, Khương Thượng, Phương Mai, Trung Tự"
+        },
+        {
+          "code": "00226",
+          "name": "Văn Miếu - Quốc Tử Giám",
+          "type": "PHUONG",
+          "oldNameHint": "Khâm Thiên, Thổ Quan, Văn Chương, Hàng Bột"
+        },
+        {
+          "code": "00199",
+          "name": "Láng",
+          "type": "PHUONG",
+          "oldNameHint": "Láng Thượng, Láng Hạ, Ngọc Khánh"
+        },
+        {
+          "code": "00190",
+          "name": "Ô Chợ Dừa",
+          "type": "PHUONG",
+          "oldNameHint": "Ô Chợ Dừa, Cát Linh, Trung Liệt, Hàng Bột"
+        },
+        {
+          "code": "00097",
+          "name": "Hồng Hà",
+          "type": "PHUONG",
+          "oldNameHint": "Chương Dương, Phúc Tân, Phúc Xá, Yên Phụ, Ngọc Thụy"
+        }
       ]
     },
     {
       "name": "Phía Tây",
       "wards": [
-        { "code": "DM021", "name": "Cầu Giấy", "type": "PHUONG" },
-        { "code": "DM022", "name": "Nghĩa Đô", "type": "PHUONG" },
-        { "code": "DM023", "name": "Yên Hòa", "type": "PHUONG" },
-        { "code": "DM024", "name": "Thanh Xuân", "type": "PHUONG" },
-        { "code": "DM025", "name": "Khương Đình", "type": "PHUONG" },
-        { "code": "DM026", "name": "Phương Liệt", "type": "PHUONG" },
-        { "code": "DM027", "name": "Từ Liêm", "type": "PHUONG" },
-        { "code": "DM028", "name": "Xuân Phương", "type": "PHUONG" },
-        { "code": "DM029", "name": "Tây Mỗ", "type": "PHUONG" },
-        { "code": "DM030", "name": "Đại Mỗ", "type": "PHUONG" },
-        { "code": "DM031", "name": "Hà Đông", "type": "PHUONG" },
-        { "code": "DM032", "name": "Dương Nội", "type": "PHUONG" }
+        {
+          "code": "00367",
+          "name": "Thanh Xuân",
+          "type": "PHUONG",
+          "oldNameHint": "Nhân Chính, Thanh Xuân Bắc, Thanh Xuân Trung, Thượng Đình, Trung Hòa"
+        },
+        {
+          "code": "00364",
+          "name": "Khương Đình",
+          "type": "PHUONG",
+          "oldNameHint": "Hạ Đình, Khương Đình, Khương Trung"
+        },
+        {
+          "code": "00352",
+          "name": "Phương Liệt",
+          "type": "PHUONG",
+          "oldNameHint": "Khương Mai, Phương Liệt, Thịnh Liệt"
+        },
+        {
+          "code": "00166",
+          "name": "Cầu Giấy",
+          "type": "PHUONG",
+          "oldNameHint": "Dịch Vọng, Dịch Vọng Hậu, Quan Hoa, Mỹ Đình 1, Mỹ Đình 2"
+        },
+        {
+          "code": "00160",
+          "name": "Nghĩa Đô",
+          "type": "PHUONG",
+          "oldNameHint": "Nghĩa Tân, Nghĩa Đô, Mai Dịch, Xuân La"
+        },
+        {
+          "code": "00175",
+          "name": "Yên Hòa",
+          "type": "PHUONG",
+          "oldNameHint": "Yên Hòa, Mễ Trì, Trung Hòa"
+        },
+        {
+          "code": "00103",
+          "name": "Tây Hồ",
+          "type": "PHUONG",
+          "oldNameHint": "Bưởi, Nhật Tân, Quảng An, Tứ Liên, Thụy Khuê"
+        },
+        {
+          "code": "00091",
+          "name": "Phú Thượng",
+          "type": "PHUONG",
+          "oldNameHint": "Phú Thượng, Đông Ngạc, Xuân La, Xuân Đỉnh"
+        },
+        {
+          "code": "00613",
+          "name": "Tây Tựu",
+          "type": "PHUONG",
+          "oldNameHint": "Tây Tựu, Minh Khai, Kim Chung"
+        },
+        {
+          "code": "00619",
+          "name": "Phú Diễn",
+          "type": "PHUONG",
+          "oldNameHint": "Phú Diễn, Phúc Diễn, Cổ Nhuế 1, Mai Dịch"
+        },
+        {
+          "code": "00611",
+          "name": "Xuân Đỉnh",
+          "type": "PHUONG",
+          "oldNameHint": "Xuân Đỉnh, Cổ Nhuế 1, Xuân Tảo"
+        },
+        {
+          "code": "00602",
+          "name": "Đông Ngạc",
+          "type": "PHUONG",
+          "oldNameHint": "Đức Thắng, Đông Ngạc, Cổ Nhuế 2, Thụy Phương"
+        },
+        {
+          "code": "00598",
+          "name": "Thượng Cát",
+          "type": "PHUONG",
+          "oldNameHint": "Liên Mạc, Thượng Cát, Thụy Phương"
+        },
+        {
+          "code": "00592",
+          "name": "Từ Liêm",
+          "type": "PHUONG",
+          "oldNameHint": "Cầu Diễn, Mỹ Đình 1, Mỹ Đình 2, Mễ Trì"
+        },
+        {
+          "code": "00622",
+          "name": "Xuân Phương",
+          "type": "PHUONG",
+          "oldNameHint": "Phương Canh, Xuân Phương, Vân Canh"
+        },
+        {
+          "code": "00634",
+          "name": "Tây Mỗ",
+          "type": "PHUONG",
+          "oldNameHint": "Tây Mỗ, Đại Mỗ, An Khánh"
+        },
+        {
+          "code": "00637",
+          "name": "Đại Mỗ",
+          "type": "PHUONG",
+          "oldNameHint": "Đại Mỗ, Mộ Lao, Trung Văn, Phú Đô"
+        },
+        {
+          "code": "09556",
+          "name": "Hà Đông",
+          "type": "PHUONG",
+          "oldNameHint": "Phúc La, Vạn Phúc, Văn Quán, Mộ Lao, Hà Cầu"
+        },
+        {
+          "code": "09886",
+          "name": "Dương Nội",
+          "type": "PHUONG",
+          "oldNameHint": "Dương Nội, Phú La, La Khê, La Phù"
+        },
+        {
+          "code": "09562",
+          "name": "Yên Nghĩa",
+          "type": "PHUONG",
+          "oldNameHint": "Yên Nghĩa, Đồng Mai"
+        },
+        {
+          "code": "09568",
+          "name": "Phú Lương",
+          "type": "PHUONG",
+          "oldNameHint": "Phú Lãm, Phú Lương, Cự Khê"
+        },
+        {
+          "code": "09552",
+          "name": "Kiến Hưng",
+          "type": "PHUONG",
+          "oldNameHint": "Kiến Hưng, Hà Cầu, Phú La"
+        }
       ]
     },
     {
       "name": "Phía Nam",
       "wards": [
-        { "code": "DM041", "name": "Hoàng Mai", "type": "PHUONG" },
-        { "code": "DM042", "name": "Định Công", "type": "PHUONG" },
-        { "code": "DM043", "name": "Tương Mai", "type": "PHUONG" },
-        { "code": "DM044", "name": "Lĩnh Nam", "type": "PHUONG" },
-        { "code": "DM045", "name": "Hoàng Liệt", "type": "PHUONG" },
-        { "code": "DM046", "name": "Yên Sở", "type": "PHUONG" }
+        {
+          "code": "00328",
+          "name": "Lĩnh Nam",
+          "type": "PHUONG",
+          "oldNameHint": "Lĩnh Nam, Thanh Trì, Trần Phú, Yên Sở"
+        },
+        {
+          "code": "00331",
+          "name": "Hoàng Mai",
+          "type": "PHUONG",
+          "oldNameHint": "Giáp Bát, Hoàng Văn Thụ, Tân Mai, Tương Mai, Vĩnh Hưng"
+        },
+        {
+          "code": "00301",
+          "name": "Vĩnh Hưng",
+          "type": "PHUONG",
+          "oldNameHint": "Vĩnh Hưng, Lĩnh Nam, Thanh Trì, Vĩnh Tuy"
+        },
+        {
+          "code": "00322",
+          "name": "Tương Mai",
+          "type": "PHUONG",
+          "oldNameHint": "Tương Mai, Giáp Bát, Phương Liệt, Trương Định, Tân Mai"
+        },
+        {
+          "code": "00316",
+          "name": "Định Công",
+          "type": "PHUONG",
+          "oldNameHint": "Định Công, Đại Kim, Tân Triều, Thanh Liệt"
+        },
+        {
+          "code": "00337",
+          "name": "Hoàng Liệt",
+          "type": "PHUONG",
+          "oldNameHint": "Hoàng Liệt, Đại Kim, Văn Điển, Tam Hiệp"
+        },
+        {
+          "code": "00340",
+          "name": "Yên Sở",
+          "type": "PHUONG",
+          "oldNameHint": "Yên Sở, Thịnh Liệt, Tứ Hiệp"
+        },
+        {
+          "code": "00643",
+          "name": "Thanh Liệt",
+          "type": "PHUONG",
+          "oldNameHint": "Thanh Liệt, Tả Thanh Oai, Đại Kim, Tân Triều"
+        }
       ]
     },
     {
       "name": "Phía Đông",
       "wards": [
-        { "code": "DM061", "name": "Long Biên", "type": "PHUONG" },
-        { "code": "DM062", "name": "Bồ Đề", "type": "PHUONG" },
-        { "code": "DM063", "name": "Việt Hưng", "type": "PHUONG" },
-        { "code": "DM064", "name": "Phúc Lợi", "type": "PHUONG" }
+        {
+          "code": "00145",
+          "name": "Long Biên",
+          "type": "PHUONG",
+          "oldNameHint": "Long Biên, Cự Khối, Phúc Đồng, Thạch Bàn"
+        },
+        {
+          "code": "00118",
+          "name": "Bồ Đề",
+          "type": "PHUONG",
+          "oldNameHint": "Ngọc Lâm, Bồ Đề, Ngọc Thụy, Gia Thụy"
+        },
+        {
+          "code": "00127",
+          "name": "Việt Hưng",
+          "type": "PHUONG",
+          "oldNameHint": "Việt Hưng, Giang Biên, Đức Giang, Thượng Thanh"
+        },
+        {
+          "code": "00136",
+          "name": "Phúc Lợi",
+          "type": "PHUONG",
+          "oldNameHint": "Phúc Lợi, Giang Biên, Thạch Bàn, Cổ Bi"
+        }
       ]
     }
   ],
   "unassignedWards": [
-    { "code": "DM081", "name": "Tây Hồ", "type": "PHUONG" },
-    { "code": "DM082", "name": "Hồng Hà", "type": "PHUONG" },
-    { "code": "DM091", "name": "Bát Tràng", "type": "XA" },
-    { "code": "DM092", "name": "Gia Lâm", "type": "XA" },
-    { "code": "DM093", "name": "Đông Anh", "type": "XA" },
-    { "code": "DM094", "name": "Sóc Sơn", "type": "XA" }
+    {
+      "code": "00640",
+      "name": "Thanh Trì",
+      "type": "XA",
+      "oldNameHint": "Văn Điển, Ngũ Hiệp, Yên Mỹ, Tứ Hiệp"
+    },
+    {
+      "code": "00664",
+      "name": "Đại Thanh",
+      "type": "XA",
+      "oldNameHint": "Tam Hiệp, Hữu Hòa, Tả Thanh Oai, Vĩnh Quỳnh"
+    },
+    {
+      "code": "00685",
+      "name": "Nam Phù",
+      "type": "XA",
+      "oldNameHint": "Vạn Phúc, Đông Mỹ, Liên Ninh, Ninh Sở"
+    },
+    {
+      "code": "00679",
+      "name": "Ngọc Hồi",
+      "type": "XA",
+      "oldNameHint": "Ngọc Hồi, Duyên Thái, Đại Áng, Khánh Hà, Liên Ninh"
+    },
+    {
+      "code": "10231",
+      "name": "Thượng Phúc",
+      "type": "XA",
+      "oldNameHint": "Tân Minh, Dũng Tiến, Quất Động, Nghiêm Xuyên, Nguyễn Trãi"
+    },
+    {
+      "code": "10183",
+      "name": "Thường Tín",
+      "type": "XA",
+      "oldNameHint": "Thường Tín, Tiền Phong, Hiền Giang, Hòa Bình, Nhị Khê"
+    },
+    {
+      "code": "10237",
+      "name": "Chương Dương",
+      "type": "XA",
+      "oldNameHint": "Chương Dương, Lê Lợi, Thắng Lợi, Tự Nhiên, Vạn Nhất"
+    },
+    {
+      "code": "10210",
+      "name": "Hồng Vân",
+      "type": "XA",
+      "oldNameHint": "Hà Hồi, Hồng Vân, Liên Phương, Vân Tảo"
+    },
+    {
+      "code": "10273",
+      "name": "Phú Xuyên",
+      "type": "XA",
+      "oldNameHint": "Phú Minh, Phú Xuyên, Hồng Thái, Minh Cường, Nam Phong"
+    },
+    {
+      "code": "10279",
+      "name": "Phượng Dực",
+      "type": "XA",
+      "oldNameHint": "Hoàng Long, Hồng Minh, Phú Túc, Văn Hoàng, Phượng Dực"
+    },
+    {
+      "code": "10330",
+      "name": "Chuyên Mỹ",
+      "type": "XA",
+      "oldNameHint": "Tân Dân, Châu Can, Phú Yên, Vân Từ, Chuyên Mỹ"
+    },
+    {
+      "code": "10342",
+      "name": "Đại Xuyên",
+      "type": "XA",
+      "oldNameHint": "Bạch Hạ, Khai Thái, Minh Tân, Phúc Tiến, Quang Lãng"
+    },
+    {
+      "code": "10114",
+      "name": "Thanh Oai",
+      "type": "XA",
+      "oldNameHint": "Kim Bài, Đỗ Động, Kim An, Phương Trung, Thanh Mai"
+    },
+    {
+      "code": "10126",
+      "name": "Bình Minh",
+      "type": "XA",
+      "oldNameHint": "Bích Hòa, Bình Minh, Cao Viên, Thanh Cao"
+    },
+    {
+      "code": "10144",
+      "name": "Tam Hưng",
+      "type": "XA",
+      "oldNameHint": "Mỹ Hưng, Thanh Thùy, Thanh Văn, Tam Hưng"
+    },
+    {
+      "code": "10180",
+      "name": "Dân Hòa",
+      "type": "XA",
+      "oldNameHint": "Cao Xuân Dương, Hồng Dương, Liên Châu, Tân Ước, Dân Hòa"
+    },
+    {
+      "code": "10354",
+      "name": "Vân Đình",
+      "type": "XA",
+      "oldNameHint": "Vân Đình, Cao Sơn Tiến, Phương Tú, Tảo Dương Văn"
+    },
+    {
+      "code": "10369",
+      "name": "Ứng Thiên",
+      "type": "XA",
+      "oldNameHint": "Hoa Viên, Liên Bạt, Quảng Phú Cầu, Trường Thịnh"
+    },
+    {
+      "code": "10417",
+      "name": "Hòa Xá",
+      "type": "XA",
+      "oldNameHint": "Hòa Phú, Thái Hòa, Bình Lưu Quang, Phù Lưu"
+    },
+    {
+      "code": "10402",
+      "name": "Ứng Hòa",
+      "type": "XA",
+      "oldNameHint": "Đại Cường, Đại Hùng, Đông Lỗ, Đồng Tân, Kim Đường, Trung Tú"
+    },
+    {
+      "code": "10441",
+      "name": "Mỹ Đức",
+      "type": "XA",
+      "oldNameHint": "Đại Nghĩa, An Phú, Đại Hưng, Hợp Thanh, Phù Lưu Tế"
+    },
+    {
+      "code": "10465",
+      "name": "Hồng Sơn",
+      "type": "XA",
+      "oldNameHint": "Phùng Xá, An Mỹ, Hợp Tiến, Lê Thanh, Xuy Xá, Hồng Sơn"
+    },
+    {
+      "code": "10459",
+      "name": "Phúc Sơn",
+      "type": "XA",
+      "oldNameHint": "Mỹ Xuyên, Phúc Lâm, Thượng Lâm, Tuy Lai, Đồng Tâm"
+    },
+    {
+      "code": "10489",
+      "name": "Hương Sơn",
+      "type": "XA",
+      "oldNameHint": "An Tiến, Hùng Tiến, Vạn Tín, Hương Sơn"
+    },
+    {
+      "code": "10015",
+      "name": "Chương Mỹ",
+      "type": "PHUONG",
+      "oldNameHint": "Chúc Sơn, Biên Giang, Đại Yên, Ngọc Hòa, Phụng Châu"
+    },
+    {
+      "code": "10030",
+      "name": "Phú Nghĩa",
+      "type": "XA",
+      "oldNameHint": "Đông Phương Yên, Đông Sơn, Thanh Bình, Trường Yên, Phú Nghĩa"
+    },
+    {
+      "code": "10045",
+      "name": "Xuân Mai",
+      "type": "XA",
+      "oldNameHint": "Xuân Mai, Nam Phương Tiến, Thủy Xuân Tiên, Tân Tiến"
+    },
+    {
+      "code": "10081",
+      "name": "Trần Phú",
+      "type": "XA",
+      "oldNameHint": "Hoàng Văn Thụ, Hữu Văn, Mỹ Lương, Trần Phú"
+    },
+    {
+      "code": "10096",
+      "name": "Hòa Phú",
+      "type": "XA",
+      "oldNameHint": "Hòa Phú, Đồng Lạc, Hồng Phú, Thượng Vực, Văn Võ"
+    },
+    {
+      "code": "10072",
+      "name": "Quảng Bị",
+      "type": "XA",
+      "oldNameHint": "Hoàng Diệu, Hợp Đồng, Quảng Bị, Tốt Động"
+    },
+    {
+      "code": "09661",
+      "name": "Minh Châu",
+      "type": "XA",
+      "oldNameHint": "Minh Châu, Chu Minh, Tây Đằng"
+    },
+    {
+      "code": "09619",
+      "name": "Quảng Oai",
+      "type": "XA",
+      "oldNameHint": "Cam Thượng, Đông Quang, Tiên Phong, Thụy An, Tây Đằng"
+    },
+    {
+      "code": "09664",
+      "name": "Vật Lại",
+      "type": "XA",
+      "oldNameHint": "Thái Hòa, Phú Sơn, Đồng Thái, Phú Châu, Vật Lại"
+    },
+    {
+      "code": "09634",
+      "name": "Cổ Đô",
+      "type": "XA",
+      "oldNameHint": "Phú Cường, Cổ Đô, Phong Vân, Phú Hồng, Phú Đông, Vạn Thắng"
+    },
+    {
+      "code": "09676",
+      "name": "Bất Bạt",
+      "type": "XA",
+      "oldNameHint": "Thuần Mỹ, Tòng Bạt, Sơn Đà, Minh Quang"
+    },
+    {
+      "code": "09694",
+      "name": "Suối Hai",
+      "type": "XA",
+      "oldNameHint": "Ba Trại, Tản Lĩnh, Thụy An, Cẩm Lĩnh"
+    },
+    {
+      "code": "09700",
+      "name": "Ba Vì",
+      "type": "XA",
+      "oldNameHint": "Ba Vì, Khánh Thượng, Minh Quang"
+    },
+    {
+      "code": "09706",
+      "name": "Yên Bài",
+      "type": "XA",
+      "oldNameHint": "Vân Hòa, Yên Bài, Thạch Hòa"
+    },
+    {
+      "code": "09616",
+      "name": "Đoài Phương",
+      "type": "XA",
+      "oldNameHint": "Kim Sơn, Sơn Đông, Cổ Đông"
+    },
+    {
+      "code": "09715",
+      "name": "Phúc Thọ",
+      "type": "XA",
+      "oldNameHint": "Phúc Thọ, Long Thượng, Phúc Hòa, Phụng Thượng, Tích Lộc"
+    },
+    {
+      "code": "09739",
+      "name": "Phúc Lộc",
+      "type": "XA",
+      "oldNameHint": "Nam Hà, Sen Phương, Vân Phúc, Võng Xuyên, Xuân Đình"
+    },
+    {
+      "code": "09772",
+      "name": "Hát Môn",
+      "type": "XA",
+      "oldNameHint": "Tam Hiệp, Hiệp Thuận, Liên Hiệp, Ngọc Tảo, Thanh Đa, Hát Môn"
+    },
+    {
+      "code": "09955",
+      "name": "Thạch Thất",
+      "type": "XA",
+      "oldNameHint": "Liên Quan, Cẩm Yên, Đại Đồng, Kim Quan, Lại Thượng, Phú Kim"
+    },
+    {
+      "code": "09982",
+      "name": "Hạ Bằng",
+      "type": "XA",
+      "oldNameHint": "Cần Kiệm, Đồng Trúc, Bình Yên, Hạ Bằng, Tân Xã"
+    },
+    {
+      "code": "10003",
+      "name": "Tây Phương",
+      "type": "XA",
+      "oldNameHint": "Phùng Xá, Hương Ngải, Lam Sơn, Thạch Xá, Phượng Sơn"
+    },
+    {
+      "code": "09988",
+      "name": "Hòa Lạc",
+      "type": "XA",
+      "oldNameHint": "Tiến Xuân, Thạch Hòa, Cổ Đông, Bình Yên, Tân Xã"
+    },
+    {
+      "code": "04930",
+      "name": "Yên Xuân",
+      "type": "XA",
+      "oldNameHint": "Đông Xuân, Yên Bình, Yên Trung"
+    },
+    {
+      "code": "09895",
+      "name": "Quốc Oai",
+      "type": "XA",
+      "oldNameHint": "Quốc Oai, Thạch Thán, Sài Sơn, Ngọc Mỹ"
+    },
+    {
+      "code": "09931",
+      "name": "Hưng Đạo",
+      "type": "XA",
+      "oldNameHint": "Cộng Hòa, Đồng Quang, Hưng Đạo"
+    },
+    {
+      "code": "09910",
+      "name": "Kiều Phú",
+      "type": "XA",
+      "oldNameHint": "Cấn Hữu, Liệp Nghĩa, Tuyết Nghĩa, Ngọc Liệp"
+    },
+    {
+      "code": "09952",
+      "name": "Phú Cát",
+      "type": "XA",
+      "oldNameHint": "Đông Yên, Hòa Thạch, Phú Mãn, Phú Cát"
+    },
+    {
+      "code": "09832",
+      "name": "Hoài Đức",
+      "type": "XA",
+      "oldNameHint": "Trạm Trôi, Di Trạch, Đức Giang, Đức Thượng, Tân Lập, Kim Chung"
+    },
+    {
+      "code": "09856",
+      "name": "Dương Hòa",
+      "type": "XA",
+      "oldNameHint": "Cát Quế, Dương Liễu, Đắc Sở, Minh Khai, Yên Sở"
+    },
+    {
+      "code": "09871",
+      "name": "Sơn Đồng",
+      "type": "XA",
+      "oldNameHint": "Lại Yên, Sơn Đồng, Tiền Yên, Song Phương, Vân Canh"
+    },
+    {
+      "code": "09877",
+      "name": "An Khánh",
+      "type": "XA",
+      "oldNameHint": "Đông La, An Khánh, La Phù, Vân Côn, An Thượng"
+    },
+    {
+      "code": "09784",
+      "name": "Đan Phượng",
+      "type": "XA",
+      "oldNameHint": "Phùng, Đồng Tháp, Song Phượng, Thượng Mỗ, Đan Phượng"
+    },
+    {
+      "code": "09817",
+      "name": "Ô Diên",
+      "type": "XA",
+      "oldNameHint": "Hạ Mỗ, Tân Hội, Liên Hà, Hồng Hà, Liên Hồng, Liên Trung"
+    },
+    {
+      "code": "09787",
+      "name": "Liên Minh",
+      "type": "XA",
+      "oldNameHint": "Phương Đình, Trung Châu, Thọ Xuân, Thọ An"
+    },
+    {
+      "code": "00565",
+      "name": "Gia Lâm",
+      "type": "XA",
+      "oldNameHint": "Trâu Quỳ, Dương Xá, Kiêu Kỵ, Phú Sơn, Cổ Bi, Đa Tốn"
+    },
+    {
+      "code": "00562",
+      "name": "Thuận An",
+      "type": "XA",
+      "oldNameHint": "Dương Quang, Lệ Chi, Đặng Xá, Phú Sơn"
+    },
+    {
+      "code": "00577",
+      "name": "Bát Tràng",
+      "type": "XA",
+      "oldNameHint": "Bát Tràng, Kim Đức, Cự Khối, Đa Tốn"
+    },
+    {
+      "code": "00541",
+      "name": "Phù Đổng",
+      "type": "XA",
+      "oldNameHint": "Yên Viên, Ninh Hiệp, Phù Đổng, Thiên Đức, Yên Thường"
+    },
+    {
+      "code": "00475",
+      "name": "Thư Lâm",
+      "type": "XA",
+      "oldNameHint": "Thụy Lâm, Vân Hà, Xuân Nộn, Liên Hà, Nguyên Khê, Uy Nỗ"
+    },
+    {
+      "code": "00454",
+      "name": "Đông Anh",
+      "type": "XA",
+      "oldNameHint": "Đông Anh, Cổ Loa, Đông Hội, Mai Lâm, Tiên Dương"
+    },
+    {
+      "code": "00466",
+      "name": "Phúc Thịnh",
+      "type": "XA",
+      "oldNameHint": "Bắc Hồng, Nam Hồng, Vân Nội, Vĩnh Ngọc"
+    },
+    {
+      "code": "00493",
+      "name": "Thiên Lộc",
+      "type": "XA",
+      "oldNameHint": "Võng La, Kim Chung, Đại Mạch, Kim Nỗ, Hải Bối"
+    },
+    {
+      "code": "00508",
+      "name": "Vĩnh Thanh",
+      "type": "XA",
+      "oldNameHint": "Tàm Xá, Xuân Canh, Vĩnh Ngọc, Hải Bối, Kim Nỗ"
+    },
+    {
+      "code": "09022",
+      "name": "Mê Linh",
+      "type": "XA",
+      "oldNameHint": "Tráng Việt, Tiền Phong, Văn Khê, Mê Linh, Đại Thịnh"
+    },
+    {
+      "code": "08980",
+      "name": "Yên Lãng",
+      "type": "XA",
+      "oldNameHint": "Chu Phan, Hoàng Kim, Liên Mạc, Thạch Đà, Tiến Thịnh"
+    },
+    {
+      "code": "08995",
+      "name": "Tiến Thắng",
+      "type": "XA",
+      "oldNameHint": "Tam Đồng, Tiến Thắng, Tự Lập, Kim Hoa, Thanh Lâm"
+    },
+    {
+      "code": "08974",
+      "name": "Quang Minh",
+      "type": "XA",
+      "oldNameHint": "Chi Đông, Quang Minh, Đại Thịnh, Kim Hoa"
+    },
+    {
+      "code": "00376",
+      "name": "Sóc Sơn",
+      "type": "XA",
+      "oldNameHint": "Sóc Sơn, Tân Minh, Đông Xuân, Phù Lỗ, Phù Linh, Tiên Dược"
+    },
+    {
+      "code": "00430",
+      "name": "Đa Phúc",
+      "type": "XA",
+      "oldNameHint": "Bắc Phú, Đức Hòa, Kim Lũ, Tân Hưng, Việt Long, Xuân Giang"
+    },
+    {
+      "code": "00433",
+      "name": "Nội Bài",
+      "type": "XA",
+      "oldNameHint": "Phú Cường, Hiền Ninh, Thanh Xuân, Mai Đình, Phú Minh"
+    },
+    {
+      "code": "00385",
+      "name": "Trung Giã",
+      "type": "XA",
+      "oldNameHint": "Bắc Sơn, Hồng Kỳ, Nam Sơn, Trung Giã"
+    },
+    {
+      "code": "00382",
+      "name": "Kim Anh",
+      "type": "XA",
+      "oldNameHint": "Tân Dân, Minh Phú, Minh Trí"
+    },
+    {
+      "code": "09574",
+      "name": "Sơn Tây",
+      "type": "PHUONG",
+      "oldNameHint": "Ngô Quyền, Phú Thịnh, Viên Sơn, Đường Lâm"
+    },
+    {
+      "code": "09604",
+      "name": "Tùng Thiện",
+      "type": "PHUONG",
+      "oldNameHint": "Xuân Khanh, Trung Sơn Trầm, Xuân Sơn"
+    }
   ]
 }

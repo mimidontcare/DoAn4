@@ -11,7 +11,7 @@ import { BookingsService } from './bookings.service';
 const startAt = new Date(Date.now() + 86_400_000);
 const booking = {
   id: 1,
-  status: BookingStatus.PENDING,
+  status: BookingStatus.PENDING as BookingStatus,
   version: 3,
   staffCount: 2,
   zoneId: 7,
