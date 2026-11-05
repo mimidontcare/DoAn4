@@ -1,0 +1,88 @@
+@startuml usecase-overview
+' Use case tổng quát. Nguồn: Master Plan v2 mục 2 (actor), 6 (chức năng theo actor).
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam ActorBorderColor #1E40AF
+skinparam UsecaseBorderColor #1E40AF
+skinparam UsecaseBackgroundColor #FFFFFF
+skinparam ArrowColor #1E3A8A
+
+actor "Khách vãng lai" as Guest
+actor "Khách hàng" as Customer
+actor "Nhân viên" as Staff
+actor "Trưởng nhóm" as Leader
+actor "Quản trị" as Admin
+actor "Hệ thống" as System
+
+Customer -|> Guest
+Leader -|> Staff
+
+rectangle "Nền tảng đặt lịch vệ sinh tại nhà" {
+  usecase "Xem dịch vụ, bảng giá, đánh giá (C05)" as UC_VIEW
+  usecase "Đăng ký, đăng nhập (C01, C02)" as UC_AUTH
+
+  usecase "Quản lý hồ sơ, địa chỉ (C03, C04)" as UC_ADDR
+  usecase "Báo giá và xem giờ trống (C06)" as UC_QUOTE
+  usecase "Đặt lịch (C07)" as UC_BOOK
+  usecase "Theo dõi đơn (C08)" as UC_TRACK
+  usecase "Hủy đơn (C09)" as UC_CANCEL
+  usecase "Đổi lịch (C12)" as UC_RESCHEDULE
+  usecase "Xác nhận điều chỉnh khối lượng (C10)" as UC_CONFIRM_ADJ
+  usecase "Đánh giá (C11)" as UC_REVIEW
+
+  usecase "Xem lịch được giao (S01)" as UC_SCHEDULE
+  usecase "Từ chối việc (S02)" as UC_DECLINE
+  usecase "Check-in (S03)" as UC_CHECKIN
+  usecase "Đề xuất điều chỉnh (S04)" as UC_ADJUST
+  usecase "Hoàn thành (S05)" as UC_COMPLETE
+  usecase "Xác nhận thu tiền (S06)" as UC_PAY
+  usecase "Báo khách vắng mặt (S07)" as UC_NOSHOW
+
+  usecase "Quản lý dịch vụ, bảng giá (A01)" as UC_CATALOG
+  usecase "Quản lý vùng phục vụ (A02)" as UC_AREAS
+  usecase "Quản lý nhân viên, lịch nghỉ (A03, A04)" as UC_STAFF
+  usecase "Phân công nhóm (A05)" as UC_ASSIGN
+  usecase "Xử lý đơn: lọc, hủy, thu tiền thay,\nxác nhận điều chỉnh thay (A06)" as UC_ORDERS
+  usecase "Quản lý khách, khóa tài khoản (A07)" as UC_USERS
+  usecase "Xem tổng quan (A08)" as UC_DASH
+  usecase "Ngày không phục vụ, ẩn đánh giá" as UC_OPTIONAL
+
+  usecase "Tự hủy đơn chưa đủ người sát giờ" as UC_AUTOCANCEL
+}
+
+Guest --> UC_VIEW
+Guest --> UC_AUTH
+
+Customer --> UC_ADDR
+Customer --> UC_QUOTE
+Customer --> UC_BOOK
+Customer --> UC_TRACK
+Customer --> UC_CANCEL
+Customer --> UC_RESCHEDULE
+Customer --> UC_CONFIRM_ADJ
+Customer --> UC_REVIEW
+UC_BOOK ..> UC_QUOTE : <<include>>
+
+Staff --> UC_SCHEDULE
+Staff --> UC_DECLINE
+Leader --> UC_CHECKIN
+Leader --> UC_ADJUST
+Leader --> UC_COMPLETE
+Leader --> UC_PAY
+Leader --> UC_NOSHOW
+UC_ADJUST ..> UC_CONFIRM_ADJ : <<extend>>
+
+Admin --> UC_CATALOG
+Admin --> UC_AREAS
+Admin --> UC_STAFF
+Admin --> UC_ASSIGN
+Admin --> UC_ORDERS
+Admin --> UC_USERS
+Admin --> UC_DASH
+Admin --> UC_OPTIONAL
+
+System --> UC_AUTOCANCEL
+@enduml

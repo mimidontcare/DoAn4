@@ -1,0 +1,64 @@
+@startuml sequence-auth
+' Sequence: đăng nhập và tự refresh token (C02, mục 15). Nguồn: Master Plan v2 mục 12, 15;
+' backend/src/auth/auth.service.ts, frontend/src/api/client.ts.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam SequenceLifeLineBorderColor #1E40AF
+skinparam ArrowColor #1E3A8A
+skinparam ParticipantBorderColor #1E40AF
+skinparam ParticipantBackgroundColor #FFFFFF
+
+actor "Người dùng" as U
+participant "React\n(api/client.ts)" as FE
+participant "AuthController" as C
+participant "AuthService" as S
+database "MySQL" as DB
+
+== Đăng nhập ==
+U -> FE: Email, mật khẩu
+FE -> C: POST /auth/login
+note right of C: Throttle: AUTH_THROTTLE_LIMIT lần / phút / IP
+C -> S: login(dto)
+S -> DB: Tìm user theo email
+S -> S: bcrypt.compare\n(so với hash giả nếu email không có, để thời gian phản hồi như nhau)
+alt Sai thông tin
+  S --> FE: 401
+else Tài khoản bị khóa
+  S --> FE: 403
+end
+S -> S: Ký access token JWT (30 phút)
+S -> DB: Lưu SHA-256 của refresh token (7 ngày)
+note right of DB: Token gốc không lưu trong database
+S --> FE: accessToken, refreshToken, user
+FE -> FE: Access token trong Zustand (bộ nhớ),\nrefresh token trong localStorage
+alt mustChangePassword = true
+  FE --> U: Chuyển tới /change-password (U01)
+end
+
+== Gọi API khi access token hết hạn ==
+FE -> C: GET /me/bookings (Bearer hết hạn)
+C --> FE: 401
+FE -> C: POST /auth/refresh (refreshToken)
+note right of FE: Nhiều request cùng gặp 401\nchỉ gọi refresh một lần
+C -> S: refresh(token)
+S -> DB: Tìm theo hash; còn hạn, chưa thu hồi, user ACTIVE
+S -> DB: UPDATE ... SET revoked_at WHERE revoked_at IS NULL
+alt 0 dòng (token đã dùng ở request khác)
+  S --> FE: 401
+  FE --> U: Đăng xuất, về trang đăng nhập
+end
+S -> DB: Lưu refresh token mới (xoay vòng)
+S --> FE: Cặp token mới
+FE -> C: Gửi lại GET /me/bookings
+C --> FE: 200
+
+== Đăng xuất / bị khóa ==
+FE -> C: POST /auth/logout
+C -> S: Thu hồi refresh token
+note over S, DB
+  Admin khóa tài khoản: thu hồi mọi refresh token;
+  JwtStrategy đọc lại trạng thái user ở mỗi request nên access token còn hạn cũng bị chặn ngay.
+end note
+@enduml

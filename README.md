@@ -28,6 +28,36 @@ npm run start:dev
 
 Tài khoản seed bị bắt đổi mật khẩu ở lần đăng nhập đầu. Chạy seed lại nhiều lần an toàn: tài khoản đã có thì bỏ qua.
 
+Seed tạo đủ 126 phường/xã của Hà Nội với mã chính thức (nguồn ghi trong `backend/prisma/data/areas/ha-noi.json`); 48 phường/xã nội thành được chia vào 4 khu vực và bật sẵn, còn lại để ngoài vùng phục vụ, admin bật khi cần.
+
+### Dữ liệu demo
+
+```bash
+# trong backend/.env đặt SEED_DEMO_PASSWORD (≥ 8 ký tự)
+npm run seed:demo
+```
+
+Tạo 5 nhân viên, 2 khách (`@demo.local`, chung mật khẩu `SEED_DEMO_PASSWORD`), 7 đơn ở đủ trạng thái, 1 đánh giá, 1 ngày không phục vụ. Thời gian tính theo lúc chạy, nên chạy trong ngày demo. Kịch bản: `docs/DEMO_SCRIPT.md`.
+
+Seed demo chỉ chạy khi database chưa có đơn đặt lịch. Muốn làm lại từ đầu thì xóa sạch database dev (**mất toàn bộ dữ liệu trong `cleaning_booking`**):
+
+```bash
+npx prisma migrate reset        # xóa và tạo lại bảng, tự chạy seed nền
+npm run seed:demo
+```
+
+Database dev tạo trước Phase 8 còn phường/xã mã tạm `DMxxx`; cần reset như trên để dùng danh sách chính thức.
+
+### Cấu hình hay chỉnh khi demo
+
+| Biến (`backend/.env`) | Mặc định | Ghi chú |
+| --- | --- | --- |
+| `AUTH_THROTTLE_LIMIT` | 5 | Số lần đăng nhập mỗi phút mỗi IP; tăng lên (vd 50) khi demo nhiều tài khoản |
+| `SCHEDULER_ENABLED` | true | Job tự hủy đơn chờ phân công khi còn dưới `AUTO_CANCEL_BEFORE_HOURS` giờ |
+| `WEEKEND_SURCHARGE_PERCENT` | 10 | Phụ phí thứ Bảy, Chủ nhật |
+
+Các ngưỡng nghiệp vụ khác (giờ phục vụ, buffer, báo trước, số nhân viên tối đa…) có mô tả trong `backend/.env.example`.
+
 - Health check: http://localhost:3000/api/v1/health
 - Swagger: http://localhost:3000/api/v1/docs
 
@@ -40,7 +70,17 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:5173, trang chủ hiển thị kết quả `/health`.
+Mở http://localhost:5173: trang chủ là danh sách dịch vụ. Sau khi đăng nhập, mỗi vai vào khu vực riêng: khách `/account`, nhân viên `/staff`, quản trị `/admin`.
+
+## Tài liệu
+
+| File | Nội dung |
+| --- | --- |
+| `docs/MASTER_PLAN.md` | Nghiệp vụ, business rule, database, API, roadmap |
+| `docs/DESIGN_SYSTEM.md` | Quy ước giao diện |
+| `docs/DEMO_SCRIPT.md` | Kịch bản demo |
+| `docs/SECURITY_REVIEW.md` | Rà soát bảo mật, `npm audit` |
+| `docs/uml/*.puml` | Use case, ERD, activity, state, sequence (đặt lịch, phân công, check-in, đăng nhập), component, deployment |
 
 ## Kiểm tra
 

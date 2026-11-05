@@ -1,0 +1,39 @@
+@startuml deployment
+' Deployment diagram. Quyết định D11 (chốt ở Phase 7): không deploy, demo trên máy local.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam NodeBorderColor #1E40AF
+skinparam NodeBackgroundColor #FFFFFF
+skinparam ArrowColor #1E3A8A
+
+node "Máy demo (Windows)" {
+  node "Trình duyệt\n(Edge / Chrome)" as Browser {
+    artifact "React SPA" as SPA
+  }
+  node "Node.js 24" as NodeFE {
+    artifact "Vite dev server\n:5173" as Vite
+  }
+  node "Node.js 24" as NodeBE {
+    artifact "NestJS API\n:3000 /api/v1\n(Swagger /api/v1/docs)" as API
+    artifact "Job tự hủy\n(@nestjs/schedule, 5 phút/lần)" as Job
+  }
+  database "MySQL 8.0 :3306" as MySQL {
+    artifact "cleaning_booking" as DevDB
+    artifact "cleaning_booking_test\n(chỉ e2e)" as TestDB
+  }
+  folder "backend/uploads" as Uploads
+}
+
+Browser --> Vite : HTTP, tải SPA
+SPA --> API : HTTPS/HTTP REST + JWT\n(CORS chỉ mở cho FRONTEND_ORIGIN)
+API --> DevDB : Prisma
+Job --> DevDB
+API --> Uploads : ảnh dịch vụ
+
+note bottom of MySQL
+  Cài sẵn trên máy, không dùng Docker.
+  User cleaning_app chỉ có quyền trên 2 database của dự án.
+end note
+@enduml

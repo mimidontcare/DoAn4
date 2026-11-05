@@ -1,0 +1,96 @@
+@startuml component
+' Component diagram. Nguồn: Master Plan v2 mục 10, 11; mã nguồn backend/src và frontend/src/features.
+' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
+
+skinparam shadowing false
+skinparam defaultFontName "Be Vietnam Pro"
+skinparam componentStyle rectangle
+skinparam ComponentBorderColor #1E40AF
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam PackageBorderColor #BFDBFE
+skinparam ArrowColor #1E3A8A
+
+package "Frontend (React SPA)" {
+  [Router + guards\n(app/)] as Router
+  [api/client.ts\nAxios, refresh token] as Client
+  [auth store\n(Zustand)] as AuthStore
+  package "features/" {
+    [auth] as F_auth
+    [catalog] as F_catalog
+    [account] as F_account
+    [booking] as F_booking
+    [staff] as F_staff
+    [admin] as F_admin
+  }
+}
+
+package "Backend (NestJS, /api/v1)" {
+  [JwtAuthGuard + RolesGuard] as Guards
+  [ResponseInterceptor,\nAllExceptionsFilter] as Common
+  package "Module nghiệp vụ" {
+    [auth] as M_auth
+    [users\n(hồ sơ, địa chỉ, khóa)] as M_users
+    [catalog] as M_catalog
+    [areas] as M_areas
+    [staff] as M_staff
+    [storage] as M_storage
+    package "bookings" {
+      [BookingsService] as BS
+      [PricingService] as PS
+      [AvailabilityService] as AV
+      [AssignmentService] as AS
+      [AdjustmentService] as ADJ
+      [RescheduleService] as RS
+      [StaffBookingsService] as SBS
+      [booking-state\n(bảng chuyển trạng thái)] as ST
+      [staff-schedule\n(khóa dòng, trùng lịch)] as SCH
+    }
+    [reviews] as M_reviews
+    [dashboard] as M_dashboard
+    [scheduler\n(job tự hủy)] as M_scheduler
+  }
+  [PrismaService] as Prisma
+}
+
+database "MySQL 8" as DB
+folder "uploads/" as Files
+
+F_auth --> Client
+F_catalog --> Client
+F_account --> Client
+F_booking --> Client
+F_staff --> Client
+F_admin --> Client
+Client --> AuthStore
+Router --> AuthStore
+
+Client --> Guards : REST JSON + Bearer JWT
+Guards --> M_auth
+Guards --> BS
+Guards --> SBS
+Guards --> M_reviews
+Guards --> M_dashboard
+
+BS --> PS
+BS --> AV
+BS --> ST
+BS --> M_areas
+AS --> SCH
+AS --> ST
+RS --> SCH
+RS --> AV
+RS --> PS
+ADJ --> ST
+SBS --> ADJ
+SBS --> ST
+M_users --> SCH : U03
+M_staff --> SCH : A04
+M_scheduler --> ST
+
+M_storage --> Files
+BS --> Prisma
+AS --> Prisma
+M_reviews --> Prisma
+M_dashboard --> Prisma
+Prisma --> DB
+@enduml

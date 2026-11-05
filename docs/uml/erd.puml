@@ -1,7 +1,6 @@
 @startuml erd
-' ERD đầy đủ 16 bảng theo Master Plan v2 (mục 7, 8).
-' Bảng nền trắng: đã có trong database (migration đã chạy).
-' Bảng nền xám (<<planned>>): thiết kế, sẽ tạo ở phase ghi trong tiêu đề.
+' ERD bản cuối (Phase 8): 16 bảng theo Master Plan v2 (mục 7, 8), khớp backend/prisma/schema.prisma.
+' Cột đánh dấu (+) là bổ sung so với mục 7, đã duyệt: original_man_minutes, min_charge (Phase 6), surcharge_percent (Phase 7).
 ' Xuất hình: extension PlantUML trong VS Code (Alt+D xem, chuột phải → Export) hoặc plantuml.com.
 
 hide circle
@@ -12,10 +11,6 @@ skinparam class {
   BackgroundColor #FFFFFF
   BorderColor #1E40AF
   ArrowColor #1E3A8A
-}
-skinparam class<<planned>> {
-  BackgroundColor #E9EEF6
-  BorderColor #8091AD
 }
 
 ' ---------- Tài khoản (Phase 1) ----------
@@ -144,9 +139,9 @@ entity "addresses" as addresses {
   IDX (user_id, is_deleted)
 }
 
-' ---------- Booking (Phase 4–5) ----------
+' ---------- Booking (Phase 4–7) ----------
 
-entity "bookings\n(Phase 4)" as bookings <<planned>> {
+entity "bookings" as bookings {
   * id : INT <<PK>>
   --
   * code : VARCHAR <<UQ>>
@@ -160,7 +155,10 @@ entity "bookings\n(Phase 4)" as bookings <<planned>> {
   .. thời gian, khối lượng ..
   * start_at, end_at : DATETIME (UTC)
   * man_minutes, staff_count, duration_minutes : INT
+  * original_man_minutes : INT (+) mốc 30% của A04
   .. tiền (VND) ..
+  * min_charge : INT (+) snapshot P04
+  * surcharge_percent : INT (+) snapshot P05
   * items_total, subtotal, surcharge, total_price : INT
   .. trạng thái ..
   * status : ENUM
@@ -180,7 +178,7 @@ entity "bookings\n(Phase 4)" as bookings <<planned>> {
   IDX (status, start_at), (zone_id, start_at)
 }
 
-entity "booking_items\n(Phase 4)" as booking_items <<planned>> {
+entity "booking_items" as booking_items {
   * id : INT <<PK>>
   --
   * booking_id : INT <<FK>>
@@ -193,7 +191,7 @@ entity "booking_items\n(Phase 4)" as booking_items <<planned>> {
   * amount : INT (VND)
 }
 
-entity "booking_assignments\n(Phase 5)" as booking_assignments <<planned>> {
+entity "booking_assignments" as booking_assignments {
   * booking_id : INT <<PK, FK>>
   * staff_id : INT <<PK, FK>>
   --
@@ -204,7 +202,7 @@ entity "booking_assignments\n(Phase 5)" as booking_assignments <<planned>> {
   IDX (staff_id)
 }
 
-entity "booking_status_histories\n(Phase 4)" as booking_status_histories <<planned>> {
+entity "booking_status_histories" as booking_status_histories {
   * id : INT <<PK>>
   --
   * booking_id : INT <<FK>>
@@ -218,7 +216,7 @@ entity "booking_status_histories\n(Phase 4)" as booking_status_histories <<plann
 
 ' ---------- Đánh giá, tùy chọn (Phase 7) ----------
 
-entity "reviews\n(Phase 7)" as reviews <<planned>> {
+entity "reviews" as reviews {
   * id : INT <<PK>>
   --
   * booking_id : INT <<FK, UQ>>
@@ -229,11 +227,13 @@ entity "reviews\n(Phase 7)" as reviews <<planned>> {
   * created_at : DATETIME
 }
 
-entity "blocked_dates\n(Phase 7, tùy chọn)" as blocked_dates <<planned>> {
+entity "blocked_dates (tùy chọn)" as blocked_dates {
   * id : INT <<PK>>
   --
   * date : DATE <<UQ>>
   reason : VARCHAR
+  * created_by : INT <<FK>>
+  * created_at : DATETIME
 }
 
 ' ---------- Quan hệ (mục 8) ----------
@@ -263,5 +263,8 @@ bookings ||--o{ booking_assignments : "1..4, 1 trưởng nhóm"
 users ||--o{ booking_assignments : "STAFF"
 bookings ||--o{ booking_status_histories
 bookings ||--o| reviews
+users ||--o{ reviews : "CUSTOMER"
+users ||--o{ booking_status_histories : "changed_by (null = System)"
+users ||--o{ blocked_dates : "created_by (ADMIN)"
 
 @enduml
